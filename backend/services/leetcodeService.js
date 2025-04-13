@@ -1,9 +1,56 @@
 const fetch = require('node-fetch');
-const LEETCODE_API_URL = 'https://leetcode.com/graphql';
 
-exports.fetchUserProfile = async (username) => {
-    const query = `
-      query userPublicProfile($username: String!) {
+class LeetcodeService {
+  constructor() {
+    this.apiUrl = 'https://leetcode.com/graphql';
+  }
+
+  /**
+   * Make a GraphQL request to LeetCode API
+   * @param {string} query - GraphQL query
+   * @param {Object} variables - Query variables
+   * @returns {Promise<Object>} Response data
+   */
+  async makeGraphQLRequest(query, variables) {
+    try {
+      const response = await fetch(this.apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Referer': 'https://leetcode.com'
+        },
+        body: JSON.stringify({
+          query,
+          variables
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.errors) {
+        throw new Error(`GraphQL errors: ${JSON.stringify(data.errors)}`);
+      }
+      
+      return data.data;
+    } catch (error) {
+      console.error('Error making GraphQL request:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Fetch comprehensive data for a LeetCode user
+   * @param {string} username - LeetCode username
+   * @returns {Promise<Object>} User data
+   */
+  async fetchUserComprehensiveData(username) {
+    // Profile query - basic user info and problem counts
+    const profileQuery = `
+      query userProfile($username: String!) {
         matchedUser(username: $username) {
           username
           submitStats: submitStatsGlobal {
@@ -12,79 +59,111 @@ exports.fetchUserProfile = async (username) => {
               count
               submissions
             }
-            totalSubmissionNum {
-              difficulty
-              count
-              submissions
-            }
           }
           profile {
+            realName
+            userAvatar
             ranking
             reputation
-            realName
+            starRating
             aboutMe
+            school
+            websites
+            countryName
+            company
+            jobTitle
+            skillTags
+            postViewCount
+            postViewCountDiff
+          }
+          badges {
+            id
+            displayName
+            icon
+            creationDate
+          }
+        }
+        userContestRanking(username: $username) {
+          attendedContestsCount
+          rating
+          globalRanking
+          totalParticipants
+          topPercentage
+          badge {
+            name
           }
         }
       }
     `;
-  
-    const variables = { username };
-    const response = await makeGraphQLRequest(query, variables);
-    return response.data.matchedUser;
-};
 
-exports.fetchUserSubmissions = async (username) => {
-  const query = `
-    query recentSubmissionList($username: String!, $limit: Int!) {
-      recentSubmissionList(username: $username, limit: $limit) {
-        id
-        title
-        titleSlug
-        status
-        statusDisplay
-        lang
-        timestamp
-        url
+    // Calendar activity query
+    const calendarQuery = `
+      query userProfileCalendar($username: String!) {
+        matchedUser(username: $username) {
+          userCalendar {
+            activeYears
+            streak
+            totalActiveDays
+            submissionCalendar
+          }
+        }
       }
+    `;
+    const skillsQuery = `
+      query skillStats($username: String!) {
+        matchedUser(username: $username) {
+          tagProblemCounts {
+            advanced {
+              tagName
+              tagSlug
+              problemsSolved
+            }
+            intermediate {
+              tagName
+              tagSlug
+              problemsSolved
+            }
+            fundamental {
+              tagName
+              tagSlug
+              problemsSolved
+            }
+          }
+        }
+      }
+    `;
+
+    try {
+      const [profileData, calendarData, skillsData] = await Promise.all([
+        this.makeGraphQLRequest(profileQuery, { username }),
+        this.makeGraphQLRequest(calendarQuery, { username }),
+        this.makeGraphQLRequest(skillsQuery, { username })
+      ]);
+      
+      const userData = {
+        ...profileData.matchedUser,
+        userContestRanking: profileData.userContestRanking,
+        ...calendarData.matchedUser,
+        tagProblemCounts: skillsData.matchedUser.tagProblemCounts
+      };
+      
+      if (userData.userCalendar && userData.userCalendar.submissionCalendar) {
+        try {
+          userData.submissionCalendar = JSON.parse(userData.userCalendar.submissionCalendar);
+          userData.streakCount = userData.userCalendar.streak || 0;
+        } catch (e) {
+          console.error('Error parsing submission calendar:', e);
+          userData.submissionCalendar = {};
+          userData.streakCount = 0;
+        }
+      }
+
+      return userData;
+    } catch (error) {
+      console.error(`Failed to fetch data for user ${username}:`, error);
+      throw error;
     }
-  `;
-
-  const variables = { 
-    username, 
-    limit: 20 
-  };
-  
-  const response = await makeGraphQLRequest(query, variables);
-  return response.data.recentSubmissionList;
-};
-
-async function makeGraphQLRequest(query, variables = {}) {
-  try {
-    const response = await fetch(LEETCODE_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Referer': 'https://leetcode.com',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      },
-      body: JSON.stringify({ query, variables })
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`GraphQL request failed: ${response.status} ${response.statusText} - ${errorText}`);
-    }
-
-    const data = await response.json();
-    
-    if (data.errors) {
-      console.error('GraphQL Error Response:', JSON.stringify(data.errors, null, 2));
-      throw new Error(`GraphQL errors: ${JSON.stringify(data.errors)}`);
-    }
-    
-    return data;
-  } catch (error) {
-    console.error('Error in GraphQL request:', error);
-    throw error;
   }
 }
+
+module.exports = new LeetcodeService();
