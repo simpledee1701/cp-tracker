@@ -1,9 +1,6 @@
 const leetcodeService = require('../services/leetcodeService');
 const statsRepository = require('../db/statsRepository');
 
-/**
- * Controller for LeetCode stats API endpoints
- */
 class LeetcodeController {
   /**
    * Get stats for a specific user
