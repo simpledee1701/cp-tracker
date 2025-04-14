@@ -11,6 +11,18 @@ app.use(express.json());
 
 app.use('/api/leetcode', leetcodeRoutes);
 
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  const errorDetails = process.env.NODE_ENV === 'production' 
+    ? { message: err.message || 'Internal server error' }
+    : { message: err.message, stack: err.stack };
+    
+  res.status(err.status || 500).json({
+    success: false,
+    error: errorDetails
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
