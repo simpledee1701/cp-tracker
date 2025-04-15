@@ -351,7 +351,7 @@ class LeetcodeService {
       ]);
   
       let contestHistory = [];
-
+  
       if (contestRanking && Array.isArray(contestRanking.userContestRankingHistory)) {
         contestHistory = contestRanking.userContestRankingHistory.filter(
           entry => entry && entry.attended === true
@@ -367,18 +367,22 @@ class LeetcodeService {
         contestRanking: contestRanking.userContestRanking || {},
         contestHistory: contestHistory,
         problemsSolved: {
-          allQuestionsCount: problemsSolved.allQuestionsCount,
           solvedStats: problemsSolved.matchedUser
         },
         badges: badges.matchedUser,
-        calendar: calendarData.matchedUser.userCalendar,
+        calendar: {
+          activeYears: calendarData.matchedUser.userCalendar.activeYears,
+          streak: calendarData.matchedUser.userCalendar.streak || 0,
+          totalActiveDays: calendarData.matchedUser.userCalendar.totalActiveDays,
+          dccBadges: calendarData.matchedUser.userCalendar.dccBadges
+        },
         recentSubmissions: recentSubmissions.recentAcSubmissionList
       };
   
-      if (userData.calendar && userData.calendar.submissionCalendar) {
+      if (calendarData.matchedUser.userCalendar && calendarData.matchedUser.userCalendar.submissionCalendar) {
         try {
-          userData.submissionCalendar = JSON.parse(userData.calendar.submissionCalendar);
-          userData.streakCount = userData.calendar.streak || 0;
+          userData.submissionCalendar = JSON.parse(calendarData.matchedUser.userCalendar.submissionCalendar);
+          userData.streakCount = calendarData.matchedUser.userCalendar.streak || 0;
         } catch (e) {
           console.error('Error parsing submission calendar:', e);
           userData.submissionCalendar = {};
@@ -391,7 +395,7 @@ class LeetcodeService {
       console.error(`Failed to fetch comprehensive data for user ${username}:`, error);
       throw error;
     }
-  }  
+  }
 }
 
 module.exports = new LeetcodeService();

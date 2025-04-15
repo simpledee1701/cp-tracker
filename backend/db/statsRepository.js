@@ -22,13 +22,11 @@ class StatsRepository {
         tag_problem_counts: userData.tagProblemCounts || null,
         contest_ranking: userData.contestRanking || null,
         contest_history: userData.contestHistory || [],
-        all_questions_count: userData.allQuestionsCount || null,
         solved_stats: {
           totalSolved: this.extractTotalSolved(userData),
           easySolved: this.extractDifficultySolved(userData, 'Easy'),
           mediumSolved: this.extractDifficultySolved(userData, 'Medium'),
           hardSolved: this.extractDifficultySolved(userData, 'Hard'),
-          acceptanceRate: this.calculateAcceptanceRate(userData)
         },
         badges: userData.badges || null,
         calendar: userData.calendar || null,
@@ -83,17 +81,6 @@ class StatsRepository {
       return allData.find(item => item.difficulty === difficulty)?.count || 0;
     }
     return 0;
-  }
-
-  calculateAcceptanceRate(userData) {
-    if (userData.problemsSolved?.solvedStats?.submitStatsGlobal?.acSubmissionNum) {
-      const allData = userData.problemsSolved.solvedStats.submitStatsGlobal.acSubmissionNum;
-      const allSubmissions = allData.find(item => item.difficulty === 'All');
-      if (allSubmissions && allSubmissions.submissions > 0) {
-        return (allSubmissions.count / allSubmissions.submissions * 100).toFixed(1);
-      }
-    }
-    return '0.0';
   }
 }
 
