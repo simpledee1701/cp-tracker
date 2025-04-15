@@ -5,12 +5,6 @@ class LeetcodeService {
     this.apiUrl = 'https://leetcode.com/graphql';
   }
 
-  /**
-   * Make a GraphQL request to LeetCode API
-   * @param {string} query - GraphQL query
-   * @param {Object} variables - Query variables
-   * @returns {Promise<Object>} Response data
-   */
   async makeGraphQLRequest(query, variables) {
     try {
       const response = await fetch(this.apiUrl, {
@@ -42,30 +36,24 @@ class LeetcodeService {
     }
   }
 
-  /**
-   * Fetch comprehensive data for a LeetCode user
-   * @param {string} username - LeetCode username
-   * @returns {Promise<Object>} User data
-   */
-  async fetchUserComprehensiveData(username) {
-    // Profile query - basic user info and problem counts
-    const profileQuery = `
-      query userProfile($username: String!) {
+  async getUserPublicProfile(username) {
+    const query = `
+      query userPublicProfile($username: String!) {
         matchedUser(username: $username) {
-          username
-          submitStats: submitStatsGlobal {
-            acSubmissionNum {
-              difficulty
-              count
-              submissions
-            }
+          contestBadge {
+            name
+            expired
+            hoverText
+            icon
           }
+          username
+          githubUrl
+          twitterUrl
+          linkedinUrl
           profile {
-            realName
-            userAvatar
             ranking
-            reputation
-            starRating
+            userAvatar
+            realName
             aboutMe
             school
             websites
@@ -75,41 +63,36 @@ class LeetcodeService {
             skillTags
             postViewCount
             postViewCountDiff
-          }
-          badges {
-            id
-            displayName
-            icon
-            creationDate
-          }
-        }
-        userContestRanking(username: $username) {
-          attendedContestsCount
-          rating
-          globalRanking
-          totalParticipants
-          topPercentage
-          badge {
-            name
+            reputation
+            reputationDiff
+            solutionCount
+            solutionCountDiff
+            categoryDiscussCount
+            categoryDiscussCountDiff
           }
         }
       }
     `;
+    
+    return this.makeGraphQLRequest(query, { username });
+  }
 
-    // Calendar activity query
-    const calendarQuery = `
-      query userProfileCalendar($username: String!) {
+  async getLanguageStats(username) {
+    const query = `
+      query languageStats($username: String!) {
         matchedUser(username: $username) {
-          userCalendar {
-            activeYears
-            streak
-            totalActiveDays
-            submissionCalendar
+          languageProblemCount {
+            languageName
+            problemsSolved
           }
         }
       }
     `;
-    const skillsQuery = `
+    return this.makeGraphQLRequest(query, { username });
+  }
+
+  async getSkillStats(username) {
+    const query = `
       query skillStats($username: String!) {
         matchedUser(username: $username) {
           tagProblemCounts {
@@ -132,38 +115,283 @@ class LeetcodeService {
         }
       }
     `;
+    
+    return this.makeGraphQLRequest(query, { username });
+  }
 
+  async getUserContestRankingInfo(username) {
+    const query = `
+      query userContestRankingInfo($username: String!) {
+        userContestRanking(username: $username) {
+          attendedContestsCount
+          rating
+          globalRanking
+          totalParticipants
+          topPercentage
+          badge {
+            name
+          }
+        }
+        userContestRankingHistory(username: $username) {
+          attended
+          trendDirection
+          problemsSolved
+          totalProblems
+          finishTimeInSeconds
+          rating
+          ranking
+          contest {
+            title
+            startTime
+          }
+        }
+      }
+    `;
+    return this.makeGraphQLRequest(query, { username });
+  }
+
+  async getUserProblemsSolved(username) {
+    const query = `
+      query userProblemsSolved($username: String!) {
+        allQuestionsCount {
+          difficulty
+          count
+        }
+        matchedUser(username: $username) {
+          problemsSolvedBeatsStats {
+            difficulty
+            percentage
+          }
+          submitStatsGlobal {
+            acSubmissionNum {
+              difficulty
+              count
+            }
+          }
+        }
+      }
+    `;
+    return this.makeGraphQLRequest(query, { username });
+  }
+
+  async getUserBadges(username) {
+    const query = `
+      query userBadges($username: String!) {
+        matchedUser(username: $username) {
+          badges {
+            id
+            name
+            shortName
+            displayName
+            icon
+            hoverText
+            medal {
+              slug
+              config {
+                iconGif
+                iconGifBackground
+              }
+            }
+            creationDate
+            category
+          }
+          upcomingBadges {
+            name
+            icon
+            progress
+          }
+        }
+      }
+    `;
+    
+    return this.makeGraphQLRequest(query, { username });
+  }
+
+  async getUserProfileCalendar(username, year) {
+    const query = `
+      query userProfileCalendar($username: String!, $year: Int) {
+        matchedUser(username: $username) {
+          userCalendar(year: $year) {
+            activeYears
+            streak
+            totalActiveDays
+            dccBadges {
+              timestamp
+              badge {
+                name
+                icon
+              }
+            }
+            submissionCalendar
+          }
+        }
+      }
+    `;
+    return this.makeGraphQLRequest(query, { username, year });
+  }
+
+  async getRecentAcSubmissions(username, limit = 15) {
+    const query = `
+      query recentAcSubmissions($username: String!, $limit: Int!) {
+        recentAcSubmissionList(username: $username, limit: $limit) {
+          id
+          title
+          titleSlug
+          timestamp
+        }
+      }
+    `;
+    return this.makeGraphQLRequest(query, { username, limit });
+  }
+
+  async getStreakCounter() {
+    const query = `
+      query getStreakCounter {
+        streakCounter {
+          streakCount
+          daysSkipped
+          currentDayCompleted
+        }
+      }
+    `;
+    
+    return this.makeGraphQLRequest(query);
+  }
+
+  async getCurrentTimestamp() {
+    const query = `
+      query currentTimestamp {
+        currentTimestamp
+      }
+    `;
+    
+    return this.makeGraphQLRequest(query);
+  }
+
+  async getQuestionOfToday() {
+    const query = `
+      query questionOfToday {
+        activeDailyCodingChallengeQuestion {
+          date
+          userStatus
+          link
+          question {
+            acRate
+            difficulty
+            freqBar
+            frontendQuestionId: questionFrontendId
+            isFavor
+            paidOnly: isPaidOnly
+            status
+            title
+            titleSlug
+            hasVideoSolution
+            hasSolution
+            topicTags {
+              name
+              id
+              slug
+            }
+          }
+        }
+      }
+    `;
+    
+    return this.makeGraphQLRequest(query);
+  }
+
+  async getCodingChallengeMedal(year, month) {
+    const query = `
+      query codingChallengeMedal($year: Int!, $month: Int!) {
+        dailyChallengeMedal(year: $year, month: $month) {
+          name
+          config {
+            icon
+          }
+        }
+      }
+    `;
+    return this.makeGraphQLRequest(query, { year, month });
+  }
+
+  async getUserActiveBadge(username) {
+    const query = `
+      query getUserProfile($username: String!) {
+        matchedUser(username: $username) {
+          activeBadge {
+            displayName
+            icon
+          }
+        }
+      }
+    `;
+    return this.makeGraphQLRequest(query, { username });
+  }
+
+  async fetchUserComprehensiveData(username) {
     try {
-      const [profileData, calendarData, skillsData] = await Promise.all([
-        this.makeGraphQLRequest(profileQuery, { username }),
-        this.makeGraphQLRequest(calendarQuery, { username }),
-        this.makeGraphQLRequest(skillsQuery, { username })
+      const [
+        profileData,
+        languageStats,
+        skillStats,
+        contestRanking,
+        problemsSolved,
+        badges,
+        calendarData,
+        recentSubmissions
+      ] = await Promise.all([
+        this.getUserPublicProfile(username),
+        this.getLanguageStats(username),
+        this.getSkillStats(username),
+        this.getUserContestRankingInfo(username),
+        this.getUserProblemsSolved(username),
+        this.getUserBadges(username),
+        this.getUserProfileCalendar(username),
+        this.getRecentAcSubmissions(username, 15)
       ]);
+  
+      let contestHistory = [];
+
+      if (contestRanking && Array.isArray(contestRanking.userContestRankingHistory)) {
+        contestHistory = contestRanking.userContestRankingHistory.filter(
+          entry => entry && entry.attended === true
+        );
+      }
       
+      console.log(`Found ${contestHistory.length} contest history entries for ${username}`);
+  
       const userData = {
-        ...profileData.matchedUser,
-        userContestRanking: profileData.userContestRanking,
-        ...calendarData.matchedUser,
-        tagProblemCounts: skillsData.matchedUser.tagProblemCounts
+        profile: profileData.matchedUser,
+        languageStats: languageStats.matchedUser.languageProblemCount,
+        tagProblemCounts: skillStats.matchedUser.tagProblemCounts,
+        contestRanking: contestRanking.userContestRanking || {},
+        contestHistory: contestHistory,
+        problemsSolved: {
+          allQuestionsCount: problemsSolved.allQuestionsCount,
+          solvedStats: problemsSolved.matchedUser
+        },
+        badges: badges.matchedUser,
+        calendar: calendarData.matchedUser.userCalendar,
+        recentSubmissions: recentSubmissions.recentAcSubmissionList
       };
-      
-      if (userData.userCalendar && userData.userCalendar.submissionCalendar) {
+  
+      if (userData.calendar && userData.calendar.submissionCalendar) {
         try {
-          userData.submissionCalendar = JSON.parse(userData.userCalendar.submissionCalendar);
-          userData.streakCount = userData.userCalendar.streak || 0;
+          userData.submissionCalendar = JSON.parse(userData.calendar.submissionCalendar);
+          userData.streakCount = userData.calendar.streak || 0;
         } catch (e) {
           console.error('Error parsing submission calendar:', e);
           userData.submissionCalendar = {};
           userData.streakCount = 0;
         }
       }
-
+  
       return userData;
     } catch (error) {
-      console.error(`Failed to fetch data for user ${username}:`, error);
+      console.error(`Failed to fetch comprehensive data for user ${username}:`, error);
       throw error;
     }
-  }
+  }  
 }
 
 module.exports = new LeetcodeService();

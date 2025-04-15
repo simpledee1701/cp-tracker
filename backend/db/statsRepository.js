@@ -1,151 +1,99 @@
 const supabase = require('./supabase');
 
 class StatsRepository {
-  /**
-   * Get stats for a specific LeetCode user
-   * @param {string} username - LeetCode username
-   * @returns {Promise<Object>} User stats or null if not found
-   */
-  async getUserStats(username) {
-    const { data, error } = await supabase
-      .from('leetcode_stats')
-      .select('*')
-      .eq('username', username)
-      .single();
+  async storeUserStats(userData) {
+    try {
+      const username = userData.profile.username;
       
-    if (error) {
-      if (error.code === 'PGRST116') { // Record not found
-        return null;
+      const { data: existingUser, error: fetchError } = await supabase
+        .from('leetcode_data')
+        .select('id')
+        .eq('username', username)
+        .maybeSingle();
+      
+      if (fetchError) throw fetchError;
+      
+      const streakCount = userData.calendar?.streak || 0;
+
+      const leetcodeData = {
+        username: username,
+        profile: userData.profile || {},
+        language_stats: userData.languageStats || null,
+        tag_problem_counts: userData.tagProblemCounts || null,
+        contest_ranking: userData.contestRanking || null,
+        contest_history: userData.contestHistory || [],
+        all_questions_count: userData.allQuestionsCount || null,
+        solved_stats: {
+          totalSolved: this.extractTotalSolved(userData),
+          easySolved: this.extractDifficultySolved(userData, 'Easy'),
+          mediumSolved: this.extractDifficultySolved(userData, 'Medium'),
+          hardSolved: this.extractDifficultySolved(userData, 'Hard'),
+          acceptanceRate: this.calculateAcceptanceRate(userData)
+        },
+        badges: userData.badges || null,
+        calendar: userData.calendar || null,
+        submission_calendar: userData.submissionCalendar 
+          ? (typeof userData.submissionCalendar === 'string' 
+              ? JSON.parse(userData.submissionCalendar) 
+              : userData.submissionCalendar)
+          : null,
+        streak_count: streakCount,
+        recent_submissions: userData.recentSubmissions || null,
+        last_updated: new Date().toISOString()
+      };
+    
+      let result;
+      
+      if (existingUser) {
+        const { data, error: updateError } = await supabase
+          .from('leetcode_data')
+          .update(leetcodeData)
+          .eq('username', username)
+          .select();
+        
+        if (updateError) throw updateError;
+        result = data[0];
+      } else {
+        const { data, error: insertError } = await supabase
+          .from('leetcode_data')
+          .insert([leetcodeData])
+          .select();
+        
+        if (insertError) throw insertError;
+        result = data[0];
       }
+      return result;
+    } catch (error) {
+      console.error('Error storing user stats:', error);
       throw error;
     }
-    
-    return data;
   }
-
-  /**
-   * Get stats for all users
-   * @param {Object} options - Query options (limit, offset)
-   * @returns {Promise<Array>} Array of user stats
-   */
-  async getAllStats({ limit = 50, offset = 0, orderBy = 'total_solved', direction = 'desc' } = {}) {
-    const { data, error } = await supabase
-      .from('leetcode_stats')
-      .select('*')
-      .order(orderBy, { ascending: direction === 'asc' })
-      .range(offset, offset + limit - 1);
-      
-    if (error) throw error;
-    return data || [];
-  }
-
-  /**
-   * Store or update user stats
-   * @param {Object} userData - User stats data
-   * @returns {Promise<Object>} Stored user data
-   */
-  async storeUserStats(userData) {
-    // First check if user exists
-    const existing = await this.getUserStats(userData.username);
-    
-    // Prepare the data object
-    const statsData = {
-      username: userData.username,
-      profile_name: userData.profile?.realName || userData.profile?.userAvatar || userData.username,
-      total_solved: userData.submitStats?.acSubmissionNum?.[0]?.count || 0,
-      easy_solved: userData.submitStats?.acSubmissionNum?.[1]?.count || 0,
-      medium_solved: userData.submitStats?.acSubmissionNum?.[2]?.count || 0,
-      hard_solved: userData.submitStats?.acSubmissionNum?.[3]?.count || 0,
-      acceptance_rate: userData.submitStats?.acSubmissionNum?.[0]?.submissions > 0
-        ? (userData.submitStats?.acSubmissionNum?.[0]?.count / userData.submitStats?.acSubmissionNum?.[0]?.submissions * 100).toFixed(1)
-        : 0,
-      ranking: userData.profile?.ranking || null,
-      contribution_points: userData.contributions?.points || 0,
-      reputation: userData.profile?.reputation || 0,
-      streak: userData.streakCount || 0,
-      website: userData.profile?.websites || null,
-      company: userData.profile?.company || null,
-      school: userData.profile?.school || null,
-      location: userData.profile?.countryName || null,
-      submission_calendar: userData.submissionCalendar || {},
-      skills_tags: userData.tagProblemCounts?.advanced?.favoriteTags || [],
-      contest_rating: userData.userContestRanking?.rating || null,
-      contest_ranking: userData.userContestRanking?.ranking || null,
-      contest_attended: userData.userContestRanking?.attendedContestsCount || 0,
-      badges: userData.badges || [],
-      solved_questions_list: userData.matchedUser?.submissionNum || [],
-      updated_at: new Date().toISOString()
-    };
-    
-    if (existing) {
-      // Update existing record
-      const { data, error } = await supabase
-        .from('leetcode_stats')
-        .update(statsData)
-        .eq('username', userData.username)
-        .select();
-        
-      if (error) throw error;
-      return data[0];
-    } else {
-      // Insert new record
-      statsData.created_at = new Date().toISOString();
-      
-      const { data, error } = await supabase
-        .from('leetcode_stats')
-        .insert([statsData])
-        .select();
-        
-      if (error) throw error;
-      return data[0];
+  
+  extractTotalSolved(userData) {
+    if (userData.problemsSolved?.solvedStats?.submitStatsGlobal?.acSubmissionNum) {
+      const allData = userData.problemsSolved.solvedStats.submitStatsGlobal.acSubmissionNum;
+      return allData.find(item => item.difficulty === 'All')?.count || 0;
     }
+    return 0;
   }
 
-  /**
-   * Delete user stats
-   * @param {string} username - LeetCode username
-   * @returns {Promise<boolean>} Success indicator
-   */
-  async deleteUserStats(username) {
-    const { error } = await supabase
-      .from('leetcode_stats')
-      .delete()
-      .eq('username', username);
-      
-    if (error) throw error;
-    return true;
+  extractDifficultySolved(userData, difficulty) {
+    if (userData.problemsSolved?.solvedStats?.submitStatsGlobal?.acSubmissionNum) {
+      const allData = userData.problemsSolved.solvedStats.submitStatsGlobal.acSubmissionNum;
+      return allData.find(item => item.difficulty === difficulty)?.count || 0;
+    }
+    return 0;
   }
 
-  /**
-   * Get user rank among all users
-   * @param {string} username - LeetCode username
-   * @param {string} metric - Metric to rank by (total_solved, contest_rating, etc.)
-   * @returns {Promise<Object>} Rank information
-   */
-  async getUserRank(username, metric = 'total_solved') {
-    // First get all users ordered by the metric
-    const { data, error } = await supabase
-      .from('leetcode_stats')
-      .select('username, ' + metric)
-      .order(metric, { ascending: false });
-      
-    if (error) throw error;
-    
-    if (!data || data.length === 0) {
-      return { rank: null, total: 0 };
+  calculateAcceptanceRate(userData) {
+    if (userData.problemsSolved?.solvedStats?.submitStatsGlobal?.acSubmissionNum) {
+      const allData = userData.problemsSolved.solvedStats.submitStatsGlobal.acSubmissionNum;
+      const allSubmissions = allData.find(item => item.difficulty === 'All');
+      if (allSubmissions && allSubmissions.submissions > 0) {
+        return (allSubmissions.count / allSubmissions.submissions * 100).toFixed(1);
+      }
     }
-    
-    // Find user's rank
-    const userIndex = data.findIndex(user => user.username === username);
-    if (userIndex === -1) {
-      return { rank: null, total: data.length };
-    }
-    
-    return { 
-      rank: userIndex + 1, 
-      total: data.length,
-      percentile: ((data.length - userIndex) / data.length * 100).toFixed(1)
-    };
+    return '0.0';
   }
 }
 
