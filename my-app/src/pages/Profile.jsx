@@ -2,6 +2,7 @@
 import { motion } from 'framer-motion';
 import { CodeBracketIcon, TrophyIcon, CalendarIcon, ChartBarIcon } from '@heroicons/react/24/outline';
 import ActivityHeatmap from '../components/ActivityHeatmap';
+import Header from '../components/Header';
 
 const Profile = () => {
   // Mock data - replace with your actual data
@@ -28,6 +29,7 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 text-gray-100">
+      <Header />
       <main className="container mx-auto px-4 py-8">
         {/* Profile Header */}
         <motion.div

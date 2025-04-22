@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import Home from '../pages/Home';
 
 const Header = () => {
   return (
@@ -23,7 +24,7 @@ const Header = () => {
         </motion.div>
         
         <nav className="hidden md:flex space-x-6">
-          <Link to="#" className="hover:text-purple-300 font-medium transition-colors duration-300">
+          <Link to="/Home" className="hover:text-purple-300 font-medium transition-colors duration-300">
             Dashboard
           </Link>
           <Link to="/contest" className="hover:text-purple-300 font-medium transition-colors duration-300">
