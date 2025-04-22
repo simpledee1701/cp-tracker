@@ -6,8 +6,8 @@ import ActivityHeatmap from '../components/ActivityHeatmap';
 const Profile = () => {
   // Mock data - replace with your actual data
   const profileData = {
-    username: 'CodeMaster',
-    avatar: 'CM',
+    username: 'Sai Suveer',
+    avatar: 'SS',
     totalSolved: 1285,
     contestsParticipated: 42,
     currentRating: 1942,
