@@ -11,56 +11,76 @@ const LeetCodeStats = ({ username = 'SaiSuveer' }) => {
       setLoading(true);
       setError(null);
       
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
+      const response = await fetch(`/api/leetcode/stats/${username}/`);
       
-      const response = await fetch(`/api/leetcode/stats/${username}/`, {
-        signal: controller.signal,
-        headers: {
-          'Accept': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest'
-        }
-      });
-      
-      clearTimeout(timeoutId);
-      
-      // Check for errors in the response
       if (!response.ok) {
         if (response.status === 404) {
           throw new Error(`User "${username}" not found on LeetCode`);
         } else if (response.status === 429) {
           throw new Error('Too many requests. Please try again later.');
         } else {
-          throw new Error(`Server error: ${response.status} ${response.statusText}`);
+          throw new Error(`Failed to fetch LeetCode stats (${response.status})`);
         }
       }
-
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        throw new Error('Server returned a non-JSON response. The API endpoint might be misconfigured or experiencing issues.');
-      }
       
-      const data = await response.json();
+      const responseData = await response.json();
       
-      // Validate the response data
-      if (!data || Object.keys(data).length === 0) {
+      if (!responseData || !responseData.data || Object.keys(responseData.data).length === 0) {
         throw new Error('No data available for this user');
       }
       
-      setStats(data);
+      // Map the response data to match the component's expected structure
+      const data = responseData.data;
+      
+      const formattedStats = {
+        // Basic profile info
+        username: data.username,
+        avatar: data.profile?.profile?.userAvatar,
+        realName: data.profile?.profile?.realName,
+        aboutMe: data.profile?.profile?.aboutMe,
+        company: data.profile?.profile?.company,
+        school: data.profile?.profile?.school,
+        countryName: data.profile?.profile?.countryName,
+        
+        // Problem solving stats
+        totalSolved: data.solved_stats?.totalSolved || 0,
+        totalProblems: data.solved_stats?.easySolved + data.solved_stats?.mediumSolved + data.solved_stats?.hardSolved + 0,
+        easySolved: data.solved_stats?.easySolved || 0,
+        mediumSolved: data.solved_stats?.mediumSolved || 0,
+        hardSolved: data.solved_stats?.hardSolved || 0,
+        totalEasy: 740, // Approximate from LeetCode
+        totalMedium: 1560, // Approximate from LeetCode
+        totalHard: 700, // Approximate from LeetCode
+        
+        // Contest stats
+        ranking: data.profile?.profile?.ranking,
+        rating: data.contest_ranking?.rating?.toFixed(2) || 'N/A',
+        totalContestsAttended: data.contest_ranking?.attendedContestsCount || 0,
+        
+        // Language stats
+        languages: data.language_stats || [],
+        
+        // Streak info
+        streak: data.streak_count || 0,
+        totalActiveDays: data.calendar?.totalActiveDays || 0,
+        
+        // Recent submissions
+        recentSubmissions: data.recent_submissions?.map(submission => ({
+          problemName: submission.title,
+          timestamp: submission.timestamp * 1000, // Convert to milliseconds
+          status: 'Accepted', // Assuming these are accepted submissions
+          problemSlug: submission.titleSlug
+        })) || [],
+        
+        // Last updated timestamp
+        lastUpdated: data.last_updated
+      };
+      
+      setStats(formattedStats);
       setLoading(false);
     } catch (err) {
       console.error('Error fetching LeetCode stats:', err);
-      
-      // Handle specific error for invalid JSON (HTML response)
-      if (err instanceof SyntaxError && err.message.includes('Unexpected token')) {
-        setError('The server returned an HTML page instead of JSON data. This typically happens when the server encounters an error. Please check your API endpoint configuration.');
-      } else if (err.name === 'AbortError') {
-        setError('Request timed out. The server took too long to respond.');
-      } else {
-        setError(err.message || 'An unknown error occurred');
-      }
-      
+      setError(err.message || 'An unknown error occurred');
       setLoading(false);
     }
   };
@@ -69,15 +89,9 @@ const LeetCodeStats = ({ username = 'SaiSuveer' }) => {
     fetchStats();
   }, [username]);
 
-  const handleDebugClick = async () => {
-    try {
-      const response = await fetch(`/api/leetcode/stats/update/${username}/`);
-      const text = await response.text();
-      console.log('Raw API Response:', text);
-      alert('Check your browser console for the raw API response');
-    } catch (err) {
-      console.error('Error fetching raw response:', err);
-    }
+  // Function to retry loading the stats
+  const retryFetch = () => {
+    fetchStats();
   };
 
   if (loading) {
@@ -114,26 +128,18 @@ const LeetCodeStats = ({ username = 'SaiSuveer' }) => {
           <div className="space-y-3">
             <button 
               className="px-6 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors w-full"
-              onClick={fetchStats}
+              onClick={retryFetch}
             >
               Try Again
             </button>
             
-            <button 
-              className="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors w-full mt-2"
-              onClick={handleDebugClick}
-            >
-              Debug Response
-            </button>
-            
             <div className="text-sm text-red-200 mt-4">
               <p className="mb-2">Possible solutions:</p>
-              <ul className="list-disc list-inside space-y-1 text-left">
-                <li>Check if your backend API is running correctly</li>
-                <li>Ensure the API route <code className="bg-red-900/30 px-1 rounded">/api/leetcode/stats/update/{username}/</code> is properly configured</li>
-                <li>Verify the API is returning JSON data and not HTML</li>
-                <li>Check your server logs for potential errors</li>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Check if the username "{username}" is correct</li>
+                <li>Verify your internet connection</li>
                 <li>The LeetCode API might be temporarily unavailable</li>
+                <li>Try again in a few moments</li>
               </ul>
             </div>
           </div>
@@ -165,6 +171,12 @@ const LeetCodeStats = ({ username = 'SaiSuveer' }) => {
     show: { width: '100%', transition: { duration: 1.5, ease: "easeOut" } }
   };
 
+  // Extract the top skill tags
+  const skillTags = stats.languages?.map(lang => ({
+    name: lang.languageName,
+    count: lang.problemsSolved
+  })) || [];
+
   return (
     <motion.div 
       className="bg-gradient-to-br from-gray-900 to-purple-900 rounded-xl p-8 shadow-lg text-white"
@@ -184,8 +196,11 @@ const LeetCodeStats = ({ username = 'SaiSuveer' }) => {
           className="w-16 h-16 rounded-full border-2 border-purple-400 mr-4"
         />
         <div>
-          <h1 className="text-2xl font-bold">{username}</h1>
-          <p className="text-purple-300">LeetCode Profile Stats</p>
+          <h1 className="text-2xl font-bold">{stats.realName || username}</h1>
+          <p className="text-purple-300">{stats.aboutMe || 'LeetCode Profile Stats'}</p>
+          {stats.countryName && (
+            <p className="text-purple-200 text-sm mt-1">{stats.countryName}</p>
+          )}
         </div>
       </motion.div>
 
@@ -292,7 +307,7 @@ const LeetCodeStats = ({ username = 'SaiSuveer' }) => {
                   initial={{ strokeDashoffset: 283 }}
                   animate={{ 
                     strokeDashoffset: stats.totalSolved && stats.totalProblems 
-                      ? 283 - (283 * stats.totalSolved / stats.totalProblems) 
+                      ? 283 - (283 * stats.totalSolved / 3000) // Approx total problems on LeetCode 
                       : 283 
                   }}
                   transition={{ duration: 1.5, delay: 0.7 }}
@@ -316,32 +331,50 @@ const LeetCodeStats = ({ username = 'SaiSuveer' }) => {
         </motion.div>
       </motion.div>
 
+      {/* Programming Languages Section */}
       <motion.div 
         className="mb-8"
         variants={containerVariants}
         initial="hidden"
         animate="show"
       >
-        <motion.h2 variants={itemVariants} className="text-xl font-bold mb-4">Submission Stats</motion.h2>
+        <motion.h2 variants={itemVariants} className="text-xl font-bold mb-4">Programming Languages</motion.h2>
+        <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {skillTags.map((lang, index) => (
+            <div key={index} className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+              <h3 className="text-purple-300 text-sm">{lang.name}</h3>
+              <p className="text-xl font-bold">{lang.count} problems</p>
+            </div>
+          ))}
+        </motion.div>
+      </motion.div>
+
+      <motion.div 
+        className="mb-8"
+        variants={containerVariants}
+        initial="hidden"
+        animate="show"
+      >
+        <motion.h2 variants={itemVariants} className="text-xl font-bold mb-4">Activity Stats</motion.h2>
         <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
-            <h3 className="text-purple-300 text-sm">Acceptance Rate</h3>
-            <p className="text-xl font-bold">{stats.acceptanceRate ? `${stats.acceptanceRate}%` : 'N/A'}</p>
-          </div>
-          
-          <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
-            <h3 className="text-purple-300 text-sm">Total Submissions</h3>
-            <p className="text-xl font-bold">{stats.totalSubmissions || 0}</p>
-          </div>
-          
-          <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
-            <h3 className="text-purple-300 text-sm">Accepted</h3>
-            <p className="text-xl font-bold">{stats.acceptedSubmissions || 0}</p>
-          </div>
-          
-          <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
-            <h3 className="text-purple-300 text-sm">Streak</h3>
+            <h3 className="text-purple-300 text-sm">Current Streak</h3>
             <p className="text-xl font-bold">{stats.streak || 0} days</p>
+          </div>
+          
+          <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+            <h3 className="text-purple-300 text-sm">Total Active Days</h3>
+            <p className="text-xl font-bold">{stats.totalActiveDays || 0}</p>
+          </div>
+          
+          <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+            <h3 className="text-purple-300 text-sm">Contest Rating</h3>
+            <p className="text-xl font-bold">{stats.rating || 'N/A'}</p>
+          </div>
+          
+          <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+            <h3 className="text-purple-300 text-sm">Global Ranking</h3>
+            <p className="text-xl font-bold">{stats.ranking || 'N/A'}</p>
           </div>
         </motion.div>
       </motion.div>
@@ -366,11 +399,8 @@ const LeetCodeStats = ({ username = 'SaiSuveer' }) => {
                   <p className="font-medium">{submission.problemName}</p>
                   <p className="text-sm text-purple-300">{new Date(submission.timestamp).toLocaleString()}</p>
                 </div>
-                <span className={`px-2 py-1 rounded text-xs ${
-                  submission.status === 'Accepted' ? 'bg-green-500/20 text-green-400' : 
-                  'bg-red-500/20 text-red-400'
-                }`}>
-                  {submission.status}
+                <span className="px-2 py-1 rounded text-xs bg-green-500/20 text-green-400">
+                  Accepted
                 </span>
               </motion.li>
             ))}
@@ -388,7 +418,7 @@ const LeetCodeStats = ({ username = 'SaiSuveer' }) => {
           Last updated: {stats.lastUpdated ? new Date(stats.lastUpdated).toLocaleString() : 'Unknown'}
         </p>
         <button 
-          onClick={fetchStats} 
+          onClick={retryFetch} 
           className="mt-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors"
         >
           Refresh Stats
