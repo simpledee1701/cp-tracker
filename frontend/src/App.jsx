@@ -4,7 +4,7 @@ import Start from './pages/start'
 import Home from './pages/Home'
 import Profile from './pages/Profile'
 import Contest from './pages/Contest'
-import LeetCodeStats from './components/LeetcodeStats'
+import LeetcodePage from './pages/LeetcodePage'
 
 function App() {
   return (
@@ -14,7 +14,7 @@ function App() {
       <Route path='/home' element={<Home/>} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/contest" element={<Contest />} />
-      <Route path='/leetcode' element={<LeetCodeStats/>}/>
+      <Route path='/leetcode' element={<LeetcodePage/>}/>
     </Routes>
     </>
   )
