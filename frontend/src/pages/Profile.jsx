@@ -3,8 +3,11 @@ import { motion } from 'framer-motion';
 import { CodeBracketIcon, TrophyIcon, CalendarIcon, ChartBarIcon } from '@heroicons/react/24/outline';
 import ActivityHeatmap from '../components/ActivityHeatmap';
 import Header from '../components/Header';
+import { useNavigate } from 'react-router-dom';
 
 const Profile = () => {
+  const navigate = useNavigate();
+
   // Mock data - replace with your actual data
   const profileData = {
     username: 'Sai Suveer',
@@ -26,6 +29,23 @@ const Profile = () => {
       { title: '5 Star Coder', platform: 'codechef', date: '2023-03-20' }
     ]
   };
+
+  const handlePlatformClick = (platform) => {
+    if (platform === 'gfg') {
+      navigate('/gfg');
+    } else if (platform === 'codeforces') {
+      navigate('/codeforces');
+    }
+    else if(platform === 'leetcode'){
+      navigate('/leetcode');
+    }
+    else if(platform ==='codechef'){
+      navigate('/codechef')
+    }
+    // Add more conditions for other platforms if necessary
+  };
+
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 text-gray-100">
@@ -84,23 +104,24 @@ const Profile = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Platform Stats */}
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-black/30 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-xl"
-          >
-            <h2 className="text-xl font-semibold mb-6">Platform Statistics</h2>
-            <div className="space-y-4">
-              {Object.entries(profileData.platformStats).map(([platform, stats]) => (
-                <PlatformProgress
-                  key={platform}
-                  platform={platform}
-                  solved={stats.solved}
-                  contests={stats.contests}
-                  rating={stats.rating}
-                />
-              ))}
-            </div>
-          </motion.div>
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="bg-black/30 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-xl"
+    >
+      <h2 className="text-xl font-semibold mb-6">Platform Statistics</h2>
+      <div className="space-y-4">
+        {Object.entries(profileData.platformStats).map(([platform, stats]) => (
+          <div key={platform} onClick={() => handlePlatformClick(platform)}>
+            <PlatformProgress
+              platform={platform}
+              solved={stats.solved}
+              contests={stats.contests}
+              rating={stats.rating}
+            />
+          </div>
+        ))}
+      </div>
+    </motion.div>
 
           {/* Activity Heatmap */}
           <ActivityHeatmap />
