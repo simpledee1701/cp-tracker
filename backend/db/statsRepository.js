@@ -66,6 +66,25 @@ class StatsRepository {
       throw error;
     }
   }
+
+  async getUserStats(username) {
+    try {
+      const { data, error } = await supabase
+        .from('leetcode_data')
+        .select('*')
+        .eq('username', username)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching user stats:', error);
+        return null;
+      }
+      return data;
+    } catch (error) {
+      console.error('Error fetching user stats:', error);
+      throw error;
+    }
+  }
   
   extractTotalSolved(userData) {
     if (userData.problemsSolved?.solvedStats?.submitStatsGlobal?.acSubmissionNum) {
