@@ -43,28 +43,37 @@ const LeetcodeStats = ({ username = 'SaiSuveer' }) => {
         countryName: data.profile?.profile?.countryName,
 
         // Problem solving stats
-        totalSolved: data.solved_stats?.totalSolved || 0,
-        totalProblems: data.solved_stats?.easySolved + data.solved_stats?.mediumSolved + data.solved_stats?.hardSolved + 0,
-        easySolved: data.solved_stats?.easySolved || 0,
-        mediumSolved: data.solved_stats?.mediumSolved || 0,
-        hardSolved: data.solved_stats?.hardSolved || 0,
+        totalSolved: data.problemsSolved?.solvedStats?.submitStatsGlobal?.acSubmissionNum?.find(item => item.difficulty === 'All')?.count || 0,
+        easySolved: data.problemsSolved?.solvedStats?.submitStatsGlobal?.acSubmissionNum?.find(item => item.difficulty === 'Easy')?.count || 0,
+        mediumSolved: data.problemsSolved?.solvedStats?.submitStatsGlobal?.acSubmissionNum?.find(item => item.difficulty === 'Medium')?.count || 0,
+        hardSolved: data.problemsSolved?.solvedStats?.submitStatsGlobal?.acSubmissionNum?.find(item => item.difficulty === 'Hard')?.count || 0,
         totalEasy: 740, // Approximate from LeetCode
         totalMedium: 1560, // Approximate from LeetCode
         totalHard: 700,
 
         ranking: data.profile?.profile?.ranking,
-        rating: data.contest_ranking?.rating?.toFixed(2) || 'N/A',
-        totalContestsAttended: data.contest_ranking?.attendedContestsCount || 0,
+        rating: data.contestRanking?.rating?.toFixed(2) || 'N/A',
+        totalContestsAttended: data.contestRanking?.attendedContestsCount || 0,
 
         // Language stats
-        languages: data.language_stats || [],
+        languages: data.languageStats || [],
+
+        // Topic stats - grouped by difficulty level
+        topicStats: {
+          fundamental: data.tagProblemCounts?.fundamental || [],
+          intermediate: data.tagProblemCounts?.intermediate || [],
+          advanced: data.tagProblemCounts?.advanced || []
+        },
+
+        // Contest history
+        contestHistory: data.contestHistory || [],
 
         // Streak info
-        streak: data.streak_count || 0,
+        streak: data.streakCount || 0,
         totalActiveDays: data.calendar?.totalActiveDays || 0,
 
         // Recent submissions
-        recentSubmissions: data.recent_submissions?.map(submission => ({
+        recentSubmissions: data.recentSubmissions?.map(submission => ({
           problemName: submission.title,
           timestamp: submission.timestamp * 1000, // Convert to milliseconds
           status: 'Accepted', // Assuming these are accepted submissions
@@ -170,10 +179,21 @@ const LeetcodeStats = ({ username = 'SaiSuveer' }) => {
     show: { width: '100%', transition: { duration: 1.5, ease: "easeOut" } }
   };
 
-  const skillTags = stats.languages?.map(lang => ({
-    name: lang.languageName,
-    count: lang.problemsSolved
-  })) || [];
+  // Get top 10 topics from all difficulty levels combined
+  const getTopTopics = () => {
+    const allTopics = [
+      ...(stats.topicStats.fundamental || []),
+      ...(stats.topicStats.intermediate || []),
+      ...(stats.topicStats.advanced || [])
+    ];
+    
+    // Sort by problems solved in descending order and get top 10
+    return allTopics
+      .sort((a, b) => b.problemsSolved - a.problemsSolved)
+      .slice(0, 10);
+  };
+
+  const topTopics = getTopTopics();
 
   return (
     <motion.div
@@ -200,7 +220,7 @@ const LeetcodeStats = ({ username = 'SaiSuveer' }) => {
         </motion.div>
 
         <motion.div variants={itemVariants} className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
-          <h3 className="text-purple-300 text-sm">Contest Attended</h3>
+          <h3 className="text-purple-300 text-sm">Contests Attended</h3>
           <p className="text-3xl font-bold">{stats.totalContestsAttended || 0}</p>
         </motion.div>
       </motion.div>
@@ -285,7 +305,7 @@ const LeetcodeStats = ({ username = 'SaiSuveer' }) => {
                   strokeDasharray="283"
                   initial={{ strokeDashoffset: 283 }}
                   animate={{
-                    strokeDashoffset: stats.totalSolved && stats.totalProblems
+                    strokeDashoffset: stats.totalSolved
                       ? 283 - (283 * stats.totalSolved / 3000) // Approx total problems on LeetCode 
                       : 283
                   }}
@@ -310,6 +330,45 @@ const LeetcodeStats = ({ username = 'SaiSuveer' }) => {
         </motion.div>
       </motion.div>
 
+      {/* Topic Analysis Chart Section */}
+      <motion.div
+        className="mb-8"
+        variants={containerVariants}
+        initial="hidden"
+        animate="show"
+      >
+        <motion.h2 variants={itemVariants} className="text-xl font-bold mb-4">Topic Analysis</motion.h2>
+        {topTopics && topTopics.length > 0 ? (
+          <motion.div variants={itemVariants} className="bg-white/10 p-6 rounded-lg backdrop-blur-sm">
+            <div className="space-y-4">
+              {topTopics.map((topic, index) => (
+                <div key={index}>
+                  <div className="flex justify-between mb-1">
+                    <span className="text-sm text-purple-300">{topic.tagName}</span>
+                    <span className="text-sm text-blue-400">
+                      {topic.problemsSolved} problems
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-700 rounded-full h-2.5">
+                    <motion.div
+                      className="bg-blue-500 h-2.5 rounded-full"
+                      style={{ width: `${Math.min(100, (topic.problemsSolved / 100) * 100)}%` }}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${Math.min(100, (topic.problemsSolved / 100) * 100)}%` }}
+                      transition={{ duration: 1, delay: 0.1 * index }}
+                    ></motion.div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div variants={itemVariants} className="bg-white/10 p-6 rounded-lg backdrop-blur-sm text-center">
+            <p className="text-gray-300">No topic data found</p>
+          </motion.div>
+        )}
+      </motion.div>
+
       {/* Programming Languages Section */}
       <motion.div
         className="mb-8"
@@ -318,14 +377,138 @@ const LeetcodeStats = ({ username = 'SaiSuveer' }) => {
         animate="show"
       >
         <motion.h2 variants={itemVariants} className="text-xl font-bold mb-4">Programming Languages</motion.h2>
-        <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {skillTags.map((lang, index) => (
-            <div key={index} className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
-              <h3 className="text-purple-300 text-sm">{lang.name}</h3>
-              <p className="text-xl font-bold">{lang.count}</p>
+        {stats.languages && stats.languages.length > 0 ? (
+          <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {stats.languages.map((lang, index) => (
+              <div key={index} className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+                <h3 className="text-purple-300 text-sm">{lang.languageName}</h3>
+                <p className="text-xl font-bold">{lang.problemsSolved}</p>
+              </div>
+            ))}
+          </motion.div>
+        ) : (
+          <motion.div variants={itemVariants} className="bg-white/10 p-6 rounded-lg backdrop-blur-sm text-center">
+            <p className="text-gray-300">No language data found</p>
+          </motion.div>
+        )}
+      </motion.div>
+
+      {/* Contest History Section */}
+      <motion.div
+        className="mb-8"
+        variants={containerVariants}
+        initial="hidden"
+        animate="show"
+      >
+        <motion.h2 variants={itemVariants} className="text-xl font-bold mb-4">Contest History</motion.h2>
+        {stats.contestHistory && stats.contestHistory.length > 0 ? (
+          <motion.div variants={itemVariants} className="bg-white/10 p-6 rounded-lg backdrop-blur-sm">
+            <div className="h-64 w-full">
+              <div className="flex justify-between mb-4">
+                <span className="text-xs text-purple-300">Contest Rating Trend</span>
+                <span className="text-xs text-purple-300">Current: {stats.rating}</span>
+              </div>
+              
+              {/* Rating Chart */}
+              <div className="relative h-40">
+                {/* Y-axis line */}
+                <div className="absolute left-0 top-0 h-full w-px bg-gray-700"></div>
+                
+                {/* X-axis line */}
+                <div className="absolute bottom-0 left-0 w-full h-px bg-gray-700"></div>
+                
+                {/* Graph points and lines */}
+                <svg className="h-full w-full overflow-visible" viewBox={`0 0 ${stats.contestHistory.length*50} 400`} preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="ratingGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.8" />
+                      <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  
+                  {/* Path for the area under the line */}
+                  <motion.path
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 0.3 }}
+                    transition={{ duration: 1, delay: 0.5 }}
+                    d={`
+                      M0,400
+                      ${stats.contestHistory.map((contest, i) => 
+                        `L${i*50},${400 - (contest.rating / 2000) * 400}`
+                      ).join(' ')}
+                      L${(stats.contestHistory.length-1)*50},400 Z
+                    `}
+                    fill="url(#ratingGradient)"
+                  />
+                  
+                  {/* Path for the line */}
+                  <motion.path
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 1.5 }}
+                    d={`
+                      M0,${400 - (stats.contestHistory[0].rating / 2000) * 400}
+                      ${stats.contestHistory.map((contest, i) => 
+                        `L${i*50},${400 - (contest.rating / 2000) * 400}`
+                      ).join(' ')}
+                    `}
+                    fill="none"
+                    stroke="#8B5CF6"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                  
+                  {/* Points */}
+                  {stats.contestHistory.map((contest, i) => (
+                    <motion.circle
+                      key={i}
+                      initial={{ r: 0 }}
+                      animate={{ r: 3 }}
+                      transition={{ duration: 0.5, delay: 0.8 + i * 0.05 }}
+                      cx={i*50}
+                      cy={400 - (contest.rating / 2000) * 400}
+                      fill="#8B5CF6"
+                      stroke="#fff"
+                      strokeWidth="1"
+                    />
+                  ))}
+                </svg>
+              </div>
+              
+              {/* X-axis labels - just show first and last contest */}
+              <div className="flex justify-between mt-2 text-xs text-gray-400">
+                <span>{stats.contestHistory[0]?.contest?.title || ''}</span>
+                <span>{stats.contestHistory[stats.contestHistory.length-1]?.contest?.title || ''}</span>
+              </div>
             </div>
-          ))}
-        </motion.div>
+            
+            {/* Recent contests summary */}
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="text-center">
+                <p className="text-purple-300 text-sm">Best Rating</p>
+                <p className="text-xl font-bold">
+                  {Math.max(...stats.contestHistory.map(c => c.rating)).toFixed(2)}
+                </p>
+              </div>
+              <div className="text-center">
+                <p className="text-purple-300 text-sm">Best Rank</p>
+                <p className="text-xl font-bold">
+                  {Math.min(...stats.contestHistory.map(c => c.ranking))}
+                </p>
+              </div>
+              <div className="text-center">
+                <p className="text-purple-300 text-sm">Problems Solved</p>
+                <p className="text-xl font-bold">
+                  {stats.contestHistory.reduce((sum, c) => sum + c.problemsSolved, 0)}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div variants={itemVariants} className="bg-white/10 p-6 rounded-lg backdrop-blur-sm text-center">
+            <p className="text-gray-300">No contest history found</p>
+          </motion.div>
+        )}
       </motion.div>
 
       <motion.div

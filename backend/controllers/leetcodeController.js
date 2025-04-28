@@ -21,7 +21,7 @@ class LeetcodeController {
   async getUserStats(req, res, next) {
     try {
       const { username } = req.params;
-      const userStats = await statsRepository.getUserStats(username);
+      const userStats = await leetcodeService.fetchUserComprehensiveData(username);
       if (!userStats) {
         return res.status(404).json({
           success: false,
