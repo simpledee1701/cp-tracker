@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const leetcodeRoutes = require('./routes/leetcodeRoutes');
+const codechefRoutes = require('./routes/codechefRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -10,11 +11,13 @@ app.use(cors({
   origin: 'http://localhost:5173',
   credentials: true,
 }));
+
 app.use(cors());
 app.use(cors({ origin: '*' }));
 app.use(express.json());
 
 app.use('/api/leetcode', leetcodeRoutes);
+app.use('/api/codechef', codechefRoutes);
 
 app.use((err, req, res, next) => {
   console.error('Error:', err);

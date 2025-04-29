@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import RatingGraph from './RatingGraph';
 
 const LeetcodeStats = ({ username = 'SaiSuveer' }) => {
   const [stats, setStats] = useState(null);
@@ -29,11 +30,10 @@ const LeetcodeStats = ({ username = 'SaiSuveer' }) => {
         throw new Error('No data available for this user');
       }
 
-      // Map the response data to match the component's expected structure
       const data = responseData.data;
 
       const formattedStats = {
-        // Basic profile info
+
         username: data.username,
         avatar: data.profile?.profile?.userAvatar,
         realName: data.profile?.profile?.realName,
@@ -55,33 +55,25 @@ const LeetcodeStats = ({ username = 'SaiSuveer' }) => {
         rating: data.contestRanking?.rating?.toFixed(2) || 'N/A',
         totalContestsAttended: data.contestRanking?.attendedContestsCount || 0,
 
-        // Language stats
         languages: data.languageStats || [],
 
-        // Topic stats - grouped by difficulty level
         topicStats: {
           fundamental: data.tagProblemCounts?.fundamental || [],
           intermediate: data.tagProblemCounts?.intermediate || [],
           advanced: data.tagProblemCounts?.advanced || []
         },
 
-        // Contest history
         contestHistory: data.contestHistory || [],
 
-        // Streak info
         streak: data.streakCount || 0,
         totalActiveDays: data.calendar?.totalActiveDays || 0,
 
-        // Recent submissions
         recentSubmissions: data.recentSubmissions?.map(submission => ({
           problemName: submission.title,
-          timestamp: submission.timestamp * 1000, // Convert to milliseconds
-          status: 'Accepted', // Assuming these are accepted submissions
+          status: 'Accepted',
           problemSlug: submission.titleSlug
         })) || [],
 
-        // Last updated timestamp
-        lastUpdated: data.last_updated
       };
 
       setStats(formattedStats);
@@ -179,18 +171,13 @@ const LeetcodeStats = ({ username = 'SaiSuveer' }) => {
     show: { width: '100%', transition: { duration: 1.5, ease: "easeOut" } }
   };
 
-  // Get top 10 topics from all difficulty levels combined
   const getTopTopics = () => {
     const allTopics = [
       ...(stats.topicStats.fundamental || []),
       ...(stats.topicStats.intermediate || []),
       ...(stats.topicStats.advanced || [])
     ];
-    
-    // Sort by problems solved in descending order and get top 10
-    return allTopics
-      .sort((a, b) => b.problemsSolved - a.problemsSolved)
-      .slice(0, 10);
+    return allTopics.sort((a, b) => b.problemsSolved - a.problemsSolved);
   };
 
   const topTopics = getTopTopics();
@@ -394,122 +381,7 @@ const LeetcodeStats = ({ username = 'SaiSuveer' }) => {
       </motion.div>
 
       {/* Contest History Section */}
-      <motion.div
-        className="mb-8"
-        variants={containerVariants}
-        initial="hidden"
-        animate="show"
-      >
-        <motion.h2 variants={itemVariants} className="text-xl font-bold mb-4">Contest History</motion.h2>
-        {stats.contestHistory && stats.contestHistory.length > 0 ? (
-          <motion.div variants={itemVariants} className="bg-white/10 p-6 rounded-lg backdrop-blur-sm">
-            <div className="h-64 w-full">
-              <div className="flex justify-between mb-4">
-                <span className="text-xs text-purple-300">Contest Rating Trend</span>
-                <span className="text-xs text-purple-300">Current: {stats.rating}</span>
-              </div>
-              
-              {/* Rating Chart */}
-              <div className="relative h-40">
-                {/* Y-axis line */}
-                <div className="absolute left-0 top-0 h-full w-px bg-gray-700"></div>
-                
-                {/* X-axis line */}
-                <div className="absolute bottom-0 left-0 w-full h-px bg-gray-700"></div>
-                
-                {/* Graph points and lines */}
-                <svg className="h-full w-full overflow-visible" viewBox={`0 0 ${stats.contestHistory.length*50} 400`} preserveAspectRatio="none">
-                  <defs>
-                    <linearGradient id="ratingGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.8" />
-                      <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                  
-                  {/* Path for the area under the line */}
-                  <motion.path
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 0.3 }}
-                    transition={{ duration: 1, delay: 0.5 }}
-                    d={`
-                      M0,400
-                      ${stats.contestHistory.map((contest, i) => 
-                        `L${i*50},${400 - (contest.rating / 2000) * 400}`
-                      ).join(' ')}
-                      L${(stats.contestHistory.length-1)*50},400 Z
-                    `}
-                    fill="url(#ratingGradient)"
-                  />
-                  
-                  {/* Path for the line */}
-                  <motion.path
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ duration: 1.5 }}
-                    d={`
-                      M0,${400 - (stats.contestHistory[0].rating / 2000) * 400}
-                      ${stats.contestHistory.map((contest, i) => 
-                        `L${i*50},${400 - (contest.rating / 2000) * 400}`
-                      ).join(' ')}
-                    `}
-                    fill="none"
-                    stroke="#8B5CF6"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                  
-                  {/* Points */}
-                  {stats.contestHistory.map((contest, i) => (
-                    <motion.circle
-                      key={i}
-                      initial={{ r: 0 }}
-                      animate={{ r: 3 }}
-                      transition={{ duration: 0.5, delay: 0.8 + i * 0.05 }}
-                      cx={i*50}
-                      cy={400 - (contest.rating / 2000) * 400}
-                      fill="#8B5CF6"
-                      stroke="#fff"
-                      strokeWidth="1"
-                    />
-                  ))}
-                </svg>
-              </div>
-              
-              {/* X-axis labels - just show first and last contest */}
-              <div className="flex justify-between mt-2 text-xs text-gray-400">
-                <span>{stats.contestHistory[0]?.contest?.title || ''}</span>
-                <span>{stats.contestHistory[stats.contestHistory.length-1]?.contest?.title || ''}</span>
-              </div>
-            </div>
-            
-            {/* Recent contests summary */}
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="text-center">
-                <p className="text-purple-300 text-sm">Best Rating</p>
-                <p className="text-xl font-bold">
-                  {Math.max(...stats.contestHistory.map(c => c.rating)).toFixed(2)}
-                </p>
-              </div>
-              <div className="text-center">
-                <p className="text-purple-300 text-sm">Best Rank</p>
-                <p className="text-xl font-bold">
-                  {Math.min(...stats.contestHistory.map(c => c.ranking))}
-                </p>
-              </div>
-              <div className="text-center">
-                <p className="text-purple-300 text-sm">Problems Solved</p>
-                <p className="text-xl font-bold">
-                  {stats.contestHistory.reduce((sum, c) => sum + c.problemsSolved, 0)}
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        ) : (
-          <motion.div variants={itemVariants} className="bg-white/10 p-6 rounded-lg backdrop-blur-sm text-center">
-            <p className="text-gray-300">No contest history found</p>
-          </motion.div>
-        )}
-      </motion.div>
+      <RatingGraph stats={stats}/>
 
       <motion.div
         className="mb-8"
