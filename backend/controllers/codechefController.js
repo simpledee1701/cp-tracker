@@ -23,8 +23,23 @@ const codechefController = {
         return res.status(400).json({ error: 'Username is required' });
       }
       
-      const analysis = await codechefService.analyzeProfile(username);
-      return res.status(200).json(analysis);
+      // Get all the data in parallel for better performance
+      const [analysisData, heatmapData, contestData, profileData] = await Promise.all([
+        codechefService.analyzeProfile(username),
+        codechefService.extractSubmissionHeatmap(username),
+        codechefService.extractContestGraph(username),
+        codechefService.extractProfileData(username)
+      ]);
+      
+      // Combine all data into a single response object
+      const completeAnalysis = {
+        profileInfo: profileData,
+        analysis: analysisData,
+        submissionHeatmap: heatmapData,
+        contestGraph: contestData
+      };
+      
+      return res.status(200).json(completeAnalysis);
     } catch (error) {
       console.error('Error in getAnalysis:', error);
       return res.status(500).json({ error: error.message || 'Failed to analyze profile' });

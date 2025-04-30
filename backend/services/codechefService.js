@@ -4,16 +4,13 @@ const cheerio = require('cheerio');
 const codechefService = {
   async extractProfileData(username) {
     try {
-      // Fetch the CodeChef profile page
       const response = await axios.get(`https://www.codechef.com/users/${username}`);
       const $ = cheerio.load(response.data);
       
-      // Extract basic profile information
       const rating = $('.rating-number').text().trim();
       const fullName = $('.h2-style').text().trim();
       const profileImage = $('.user-details-container img').attr('src');
       
-      // Extract badges
       const badges = [];
       $('.badge-details .badge-star').each((i, el) => {
         const badgeName = $(el).find('.badge-title').text().trim();
@@ -24,7 +21,6 @@ const codechefService = {
         });
       });
       
-      // Extract problems solved
       const problemsSolved = {
         total: $('.rating-data-section:contains("Problems Solved")').find('.content').text().trim(),
         breakdown: {}
@@ -53,46 +49,40 @@ const codechefService = {
   
   async extractSubmissionHeatmap(username) {
     try {
-      // Fetch the submission data
-      const response = await axios.get(`https://www.codechef.com/users/${username}`);
-      const $ = cheerio.load(response.data);
+      const apiUrl = `https://codechef-api.vercel.app/handle/${username}`;
+      console.log(`Fetching heatmap data from API: ${apiUrl}`);
       
-      // Extract the heatmap data from script tag containing the calendar data
-      let heatmapData = {};
+      const response = await axios.get(apiUrl);
       
-      // CodeChef usually stores heatmap data in a script tag
-      const scripts = $('script').toArray();
-      for (const script of scripts) {
-        const content = $(script).html() || '';
-        if (content.includes('calendar_data')) {
-          const match = content.match(/calendar_data\s*=\s*(\{.*?\});/s);
-          if (match && match[1]) {
-            try {
-              // Use Function constructor as a safer alternative to eval
-              heatmapData = new Function(`return ${match[1]}`)();
-            } catch (e) {
-              console.error('Error parsing calendar data:', e);
-            }
-          }
-        }
+      if (!response.data || !response.data.success) {
+        console.error('API returned error:', response.data);
+        throw new Error('Failed to fetch heatmap data from API');
       }
       
-      // Calculate active days
-      const activeDays = Object.keys(heatmapData).length;
+      const heatmapData = response.data.heatMap || [];
       
-      // Format data for visualization
-      const formattedData = Object.entries(heatmapData).map(([date, count]) => ({
-        date,
-        count
+      const activeDays = heatmapData.length;
+      
+      // Calculate total submissions
+      let totalSubmissions = 0;
+      heatmapData.forEach(day => {
+        totalSubmissions += parseInt(day.value || 0);
+      });
+      
+      const formattedData = heatmapData.map(day => ({
+        date: day.date,
+        count: parseInt(day.value || 0)
       }));
       
+      // Return the formatted data
       return {
         activeDays,
+        totalSubmissions,
         heatmapData: formattedData
       };
     } catch (error) {
       console.error('Error extracting submission heatmap:', error);
-      throw new Error('Failed to extract submission heatmap');
+      throw new Error(`Failed to extract submission heatmap: ${error.message}`);
     }
   },
   
