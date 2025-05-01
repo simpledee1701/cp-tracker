@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import LeetCodeStats from '../components/LeetcodeStats';
+import LeetCodeStats from '../components/LeetCodeStats';
 import Header from '../components/Header';
 
 const LeetcodePage = () => {

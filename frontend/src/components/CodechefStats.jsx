@@ -273,7 +273,7 @@ export default function CodeChefStats({ data }) {
   }));
 
   return (
-    <div className="max-w-6xl mx-auto p-4 bg-gray-950">
+    <div className="max-w-6xl mx-auto p-4 bg-gray-900">
       {/* Header Section */}
       <div className="bg-gray-900 rounded-lg shadow-lg p-6 mb-6 text-gray-200 border border-gray-800 justify-items-center">
         <div className="flex flex-col md:flex-row items-start md:items-center gap-6">

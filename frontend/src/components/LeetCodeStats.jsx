@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import RatingGraph from './RatingGraph';
 
 const LeetcodeStats = ({ username = 'SaiSuveer' }) => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [expandedTopics, setExpandedTopics] = useState(false);
 
   const fetchStats = async () => {
     try {
@@ -166,6 +167,11 @@ const LeetcodeStats = ({ username = 'SaiSuveer' }) => {
     show: { y: 0, opacity: 1, transition: { duration: 0.5 } }
   };
 
+  const topicContainerVariants = {
+    closed: { height: "auto" },
+    open: { height: "auto" }
+  };
+
   const progressVariants = {
     hidden: { width: 0 },
     show: { width: '100%', transition: { duration: 1.5, ease: "easeOut" } }
@@ -181,6 +187,17 @@ const LeetcodeStats = ({ username = 'SaiSuveer' }) => {
   };
 
   const topTopics = getTopTopics();
+  
+  // Get topics by category
+  const getTopicsByCategory = () => {
+    return {
+      fundamental: stats.topicStats.fundamental?.sort((a, b) => b.problemsSolved - a.problemsSolved) || [],
+      intermediate: stats.topicStats.intermediate?.sort((a, b) => b.problemsSolved - a.problemsSolved) || [],
+      advanced: stats.topicStats.advanced?.sort((a, b) => b.problemsSolved - a.problemsSolved) || []
+    };
+  };
+
+  const topicsByCategory = getTopicsByCategory();
 
   return (
     <motion.div
@@ -317,43 +334,164 @@ const LeetcodeStats = ({ username = 'SaiSuveer' }) => {
         </motion.div>
       </motion.div>
 
-      {/* Topic Analysis Chart Section */}
+      {/* Enhanced Topic Analysis Chart Section with Expandable Interface */}
       <motion.div
         className="mb-8"
         variants={containerVariants}
         initial="hidden"
         animate="show"
       >
-        <motion.h2 variants={itemVariants} className="text-xl font-bold mb-4">Topic Analysis</motion.h2>
-        {topTopics && topTopics.length > 0 ? (
-          <motion.div variants={itemVariants} className="bg-white/10 p-6 rounded-lg backdrop-blur-sm">
-            <div className="space-y-4">
-              {topTopics.map((topic, index) => (
-                <div key={index}>
-                  <div className="flex justify-between mb-1">
-                    <span className="text-sm text-purple-300">{topic.tagName}</span>
-                    <span className="text-sm text-blue-400">
-                      {topic.problemsSolved} problems
-                    </span>
+        <motion.div variants={itemVariants} className="bg-gray-800 rounded-xl overflow-hidden shadow-lg border border-purple-500/30">
+          <div 
+            className="flex justify-between items-center p-4 bg-gray-900 cursor-pointer"
+            onClick={() => setExpandedTopics(!expandedTopics)}
+          >
+            <h2 className="text-xl font-bold text-white">Topic Analysis</h2>
+            <motion.div
+              animate={{ rotate: expandedTopics ? 180 : 0 }}
+              transition={{ duration: 0.3 }}
+              className="text-purple-400"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </motion.div>
+          </div>
+
+          <AnimatePresence>
+            {topTopics && topTopics.length > 0 && (
+              <motion.div
+                variants={topicContainerVariants}
+                initial="closed"
+                animate={expandedTopics ? "open" : "closed"}
+                exit="closed"
+                className="overflow-hidden"
+              >
+                <div className="p-6 bg-gray-800">
+                  {/* Top Topics Overview */}
+                  <div className="mb-6">
+                    <h3 className="text-purple-300 text-lg mb-3">Top Skills</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {topTopics.slice(0, 4).map((topic, index) => (
+                        <div key={index} className="bg-gray-700/50 p-3 rounded-lg">
+                          <div className="flex justify-between mb-1">
+                            <span className="text-sm text-purple-300">{topic.tagName}</span>
+                            <span className="text-sm text-blue-400">
+                              {topic.problemsSolved} solved
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-700 rounded-full h-2.5">
+                            <motion.div
+                              className="bg-blue-500 h-2.5 rounded-full"
+                              style={{ width: `${Math.min(100, (topic.problemsSolved / 100) * 100)}%` }}
+                              initial={{ width: 0 }}
+                              animate={{ width: `${Math.min(100, (topic.problemsSolved / 100) * 100)}%` }}
+                              transition={{ duration: 1, delay: 0.1 * index }}
+                            ></motion.div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="w-full bg-gray-700 rounded-full h-2.5">
-                    <motion.div
-                      className="bg-blue-500 h-2.5 rounded-full"
-                      style={{ width: `${Math.min(100, (topic.problemsSolved / 100) * 100)}%` }}
-                      initial={{ width: 0 }}
-                      animate={{ width: `${Math.min(100, (topic.problemsSolved / 100) * 100)}%` }}
-                      transition={{ duration: 1, delay: 0.1 * index }}
-                    ></motion.div>
+
+                  {/* Detailed Categories */}
+                  <div className="space-y-6">
+                    {/* Fundamental Topics */}
+                    {topicsByCategory.fundamental.length > 0 && (
+                      <div>
+                        <h3 className="text-green-300 text-lg mb-3">Fundamental Topics</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {topicsByCategory.fundamental.slice(0, 6).map((topic, index) => (
+                            <div key={index} className="bg-gray-700/30 p-3 rounded-lg">
+                              <div className="flex justify-between mb-1">
+                                <span className="text-sm text-green-300">{topic.tagName}</span>
+                                <span className="text-sm text-green-400">
+                                  {topic.problemsSolved} solved
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-700 rounded-full h-2">
+                                <motion.div
+                                  className="bg-green-500 h-2 rounded-full"
+                                  style={{ width: `${Math.min(100, (topic.problemsSolved / 50) * 100)}%` }}
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${Math.min(100, (topic.problemsSolved / 50) * 100)}%` }}
+                                  transition={{ duration: 1, delay: 0.1 * index }}
+                                ></motion.div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Intermediate Topics */}
+                    {topicsByCategory.intermediate.length > 0 && (
+                      <div>
+                        <h3 className="text-yellow-300 text-lg mb-3">Intermediate Topics</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {topicsByCategory.intermediate.slice(0, 6).map((topic, index) => (
+                            <div key={index} className="bg-gray-700/30 p-3 rounded-lg">
+                              <div className="flex justify-between mb-1">
+                                <span className="text-sm text-yellow-300">{topic.tagName}</span>
+                                <span className="text-sm text-yellow-400">
+                                  {topic.problemsSolved} solved
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-700 rounded-full h-2">
+                                <motion.div
+                                  className="bg-yellow-500 h-2 rounded-full"
+                                  style={{ width: `${Math.min(100, (topic.problemsSolved / 50) * 100)}%` }}
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${Math.min(100, (topic.problemsSolved / 50) * 100)}%` }}
+                                  transition={{ duration: 1, delay: 0.1 * index }}
+                                ></motion.div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Advanced Topics */}
+                    {topicsByCategory.advanced.length > 0 && (
+                      <div>
+                        <h3 className="text-red-300 text-lg mb-3">Advanced Topics</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {topicsByCategory.advanced.slice(0, 6).map((topic, index) => (
+                            <div key={index} className="bg-gray-700/30 p-3 rounded-lg">
+                              <div className="flex justify-between mb-1">
+                                <span className="text-sm text-red-300">{topic.tagName}</span>
+                                <span className="text-sm text-red-400">
+                                  {topic.problemsSolved} solved
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-700 rounded-full h-2">
+                                <motion.div
+                                  className="bg-red-500 h-2 rounded-full"
+                                  style={{ width: `${Math.min(100, (topic.problemsSolved / 50) * 100)}%` }}
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${Math.min(100, (topic.problemsSolved / 50) * 100)}%` }}
+                                  transition={{ duration: 1, delay: 0.1 * index }}
+                                ></motion.div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
-              ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+          
+          {/* If no topics are found */}
+          {(!topTopics || topTopics.length === 0) && (
+            <div className="p-6 bg-gray-800 text-center">
+              <p className="text-gray-300">No topic data found</p>
             </div>
-          </motion.div>
-        ) : (
-          <motion.div variants={itemVariants} className="bg-white/10 p-6 rounded-lg backdrop-blur-sm text-center">
-            <p className="text-gray-300">No topic data found</p>
-          </motion.div>
-        )}
+          )}
+        </motion.div>
       </motion.div>
 
       {/* Programming Languages Section */}
@@ -450,20 +588,6 @@ const LeetcodeStats = ({ username = 'SaiSuveer' }) => {
           </motion.ul>
         </motion.div>
       )}
-
-      <motion.div
-        className="mt-8 text-center"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.5 }}
-      >
-        <button
-          onClick={retryFetch}
-          className="mt-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors"
-        >
-          Refresh Stats
-        </button>
-      </motion.div>
     </motion.div>
   );
 };
