@@ -60,12 +60,12 @@ export default function CodeChefStats({ data }) {
     // Add header
     const headerContent = createElementSvg('text', { x: '0', y: '-10' });
     headerContent.textContent = 'Last 6 Months Activity';
-    headerContent.classList.add('text-sm', 'font-semibold', 'fill-gray-200');
+    headerContent.classList.add('text-sm', 'font-semibold', 'fill-gray-300');
     gElementContainer.appendChild(headerContent);
     
     // Create tag element for tooltips
     const tagElement = document.createElement('div');
-    tagElement.classList.add('absolute', 'bg-gray-800', 'text-white', 'px-2', 'py-1', 'rounded', 'text-xs', 'shadow-lg');
+    tagElement.classList.add('absolute', 'bg-gray-900', 'text-gray-200', 'px-2', 'py-1', 'rounded', 'text-xs', 'shadow-lg');
     tagElement.style.display = 'none';
     tagElement.style.zIndex = 50;
     heatmapRef.current.appendChild(tagElement);
@@ -106,7 +106,7 @@ export default function CodeChefStats({ data }) {
           const textMonth = createElementSvg('text', { x: k, y: '160', class: 'month' });
           k += gap;
           textMonth.textContent = settings.months[rectDate.getMonth()];
-          textMonth.classList.add('text-xs', 'fill-gray-300');
+          textMonth.classList.add('text-xs', 'fill-gray-400');
           gElementContainer.appendChild(textMonth);
           monthCount = rectDate.getMonth();
         }
@@ -126,7 +126,7 @@ export default function CodeChefStats({ data }) {
             y: 20 * j,
           });
           
-          rectElement.classList.add('fill-gray-600');
+          rectElement.classList.add('fill-gray-800');
           
           // Add tooltip event listeners
           rectElement.addEventListener('mouseover', function() {
@@ -166,7 +166,7 @@ export default function CodeChefStats({ data }) {
     for (let i = 0; i < 7; i += 2) {
       const curDay = createElementSvg('text', { x: '-35', y: `${(20 * i) + 12}` });
       curDay.textContent = settings.weeks[i/2];
-      curDay.classList.add('text-xs', 'fill-gray-300');
+      curDay.classList.add('text-xs', 'fill-gray-400');
       gElementContainer.appendChild(curDay);
     }
     
@@ -190,15 +190,15 @@ export default function CodeChefStats({ data }) {
           
           // Apply color based on submission count
           if (value >= 1 && value < 5) {
-            cur.classList.replace('fill-gray-600', 'fill-purple-300');
+            cur.classList.replace('fill-gray-800', 'fill-indigo-200');
           } else if (value >= 5 && value < 10) {
-            cur.classList.replace('fill-gray-600', 'fill-purple-400');
+            cur.classList.replace('fill-gray-800', 'fill-indigo-300');
           } else if (value >= 10 && value < 15) {
-            cur.classList.replace('fill-gray-600', 'fill-purple-500');
+            cur.classList.replace('fill-gray-800', 'fill-indigo-400');
           } else if (value >= 15 && value < 20) {
-            cur.classList.replace('fill-gray-600', 'fill-purple-600');
+            cur.classList.replace('fill-gray-800', 'fill-indigo-500');
           } else if (value >= 20) {
-            cur.classList.replace('fill-gray-600', 'fill-purple-700');
+            cur.classList.replace('fill-gray-800', 'fill-indigo-600');
           }
           
           submissionCount += value;
@@ -249,7 +249,7 @@ export default function CodeChefStats({ data }) {
   
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64 bg-purple-900 text-white rounded-lg">
+      <div className="flex justify-center items-center h-64 bg-gray-900 text-gray-200 rounded-lg border border-gray-800">
         <div className="text-xl">Loading profile data...</div>
       </div>
     );
@@ -257,8 +257,8 @@ export default function CodeChefStats({ data }) {
 
   if (!profileData) {
     return (
-      <div className="flex justify-center items-center h-64 bg-purple-900 text-white rounded-lg">
-        <div className="text-xl text-red-300">Failed to load profile data</div>
+      <div className="flex justify-center items-center h-64 bg-gray-900 text-gray-200 rounded-lg border border-gray-800">
+        <div className="text-xl text-red-400">Failed to load profile data</div>
       </div>
     );
   }
@@ -273,22 +273,21 @@ export default function CodeChefStats({ data }) {
   }));
 
   return (
-    <div className="max-w-6xl mx-auto p-4 bg-black-900">
+    <div className="max-w-6xl mx-auto p-4 bg-gray-950">
       {/* Header Section */}
-      <div className="bg-black rounded-lg shadow-lg p-6 mb-6 text-white">
+      <div className="bg-gray-900 rounded-lg shadow-lg p-6 mb-6 text-gray-200 border border-gray-800 justify-items-center">
         <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-
           <div className="flex-1 content-center">
-            <div className="mt-3 flex flex-wrap gap-3">
-              <div className="bg-purple-700 text-purple-100 px-3 py-1 rounded-full text-sm flex items-center">
+            <div className="mt-3 flex flex-wrap gap-3 items-center">
+              <div className="bg-indigo-900 text-indigo-100 px-3 py-1 rounded-full text-sm flex items-center">
                 <Trophy size={16} className="mr-1" />
                 Rating: {profileInfo.rating}
               </div>
-              <div className="bg-purple-700 text-purple-100 px-3 py-1 rounded-full text-sm flex items-center">
+              <div className="bg-indigo-900 text-indigo-100 px-3 py-1 rounded-full text-sm flex items-center">
                 <Activity size={16} className="mr-1" />
                 Active Days: {submissionHeatmap.activeDays}
               </div>
-              <div className="bg-purple-700 text-purple-100 px-3 py-1 rounded-full text-sm flex items-center">
+              <div className="bg-indigo-900 text-indigo-100 px-3 py-1 rounded-full text-sm flex items-center">
                 <Users size={16} className="mr-1" />
                 Best Rank: {contestGraph.bestRank}
               </div>
@@ -298,113 +297,110 @@ export default function CodeChefStats({ data }) {
       </div>
 
       {/* Analysis Section */}
-      <div className="bg-purple-800 rounded-lg shadow-lg overflow-hidden mb-6 text-white">
+      <div className="bg-gray-900 rounded-lg shadow-lg overflow-hidden mb-6 text-gray-200 border border-gray-800">
         <div 
-          className="flex items-center justify-between p-4 cursor-pointer bg-purple-700"
+          className="flex items-center justify-between p-4 cursor-pointer bg-gray-800"
           onClick={() => toggleSection('analysis')}
         >
           <h2 className="text-xl font-semibold flex items-center">
-            <Award className="mr-2" /> Performance Analysis
+            <Award className="mr-2 text-indigo-400" /> Performance Analysis
           </h2>
-          {expandedSections.analysis ? <ChevronUp /> : <ChevronDown />}
+          {expandedSections.analysis ? 
+            <ChevronUp className="text-indigo-400" /> : 
+            <ChevronDown className="text-indigo-400" />
+          }
         </div>
         
         {expandedSections.analysis && (
           <div className="p-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="bg-purple-700 p-4 rounded-lg">
-                <h3 className="text-lg font-medium text-purple-200">Activity Stats</h3>
+              <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
+                <h3 className="text-lg font-medium text-indigo-300">Activity Stats</h3>
                 <div className="mt-2 space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-purple-300">Active Days:</span>
-                    <span className="font-medium text-white">{analysis.summary.activeDays}</span>
+                    <span className="text-gray-400">Active Days:</span>
+                    <span className="font-medium text-gray-200">{analysis.summary.activeDays}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-purple-300">Activity Rate:</span>
-                    <span className="font-medium text-white">{(parseFloat(analysis.summary.activityRate) * 100).toFixed(1)}%</span>
+                    <span className="text-gray-400">Activity Rate:</span>
+                    <span className="font-medium text-gray-200">{(parseFloat(analysis.summary.activityRate) * 100).toFixed(1)}%</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-purple-300">Total Submissions:</span>
-                    <span className="font-medium text-white">{submissionHeatmap.totalSubmissions}</span>
+                    <span className="text-gray-400">Total Submissions:</span>
+                    <span className="font-medium text-gray-200">{submissionHeatmap.totalSubmissions}</span>
                   </div>
                 </div>
               </div>
               
-              <div className="bg-purple-700 p-4 rounded-lg">
-                <h3 className="text-lg font-medium text-purple-200">Contest Performance</h3>
+              <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
+                <h3 className="text-lg font-medium text-indigo-300">Contest Performance</h3>
                 <div className="mt-2 space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-purple-300">Contests:</span>
-                    <span className="font-medium text-white">{analysis.summary.contestsParticipated}</span>
+                    <span className="text-gray-400">Contests:</span>
+                    <span className="font-medium text-gray-200">{analysis.summary.contestsParticipated}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-purple-300">Highest Rating:</span>
-                    <span className="font-medium text-white">{analysis.summary.highestRating}</span>
+                    <span className="text-gray-400">Highest Rating:</span>
+                    <span className="font-medium text-gray-200">{analysis.summary.highestRating}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-purple-300">Best Rank:</span>
-                    <span className="font-medium text-white">{analysis.summary.bestRank}</span>
+                    <span className="text-gray-400">Best Rank:</span>
+                    <span className="font-medium text-gray-200">{analysis.summary.bestRank}</span>
                   </div>
                 </div>
               </div>
               
-              <div className="bg-purple-700 p-4 rounded-lg">
-                <h3 className="text-lg font-medium text-purple-200">Progress</h3>
+              <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
+                <h3 className="text-lg font-medium text-indigo-300">Progress</h3>
                 <div className="mt-2 space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-purple-300">Rating Trend:</span>
-                    <span className="font-medium text-green-300 flex items-center">
+                    <span className="text-gray-400">Rating Trend:</span>
+                    <span className="font-medium text-green-400 flex items-center">
                       +{analysis.summary.ratingTrend} <TrendingUp size={16} className="ml-1" />
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-purple-300">Current Rating:</span>
-                    <span className="font-medium text-white">{profileInfo.rating}</span>
+                    <span className="text-gray-400">Current Rating:</span>
+                    <span className="font-medium text-gray-200">{profileInfo.rating}</span>
                   </div>
                 </div>
               </div>
-            </div>
-            
-            <div className="mt-6">
-              <h3 className="text-lg font-medium">Recommendations</h3>
-              <ul className="mt-2 space-y-2 list-disc pl-5 text-purple-200">
-                {analysis.recommendations.map((rec, index) => (
-                  <li key={index}>{rec}</li>
-                ))}
-              </ul>
             </div>
           </div>
         )}
       </div>
 
       {/* Submission Heatmap Section */}
-      <div className="bg-purple-800 rounded-lg shadow-lg overflow-hidden mb-6 text-white">
+      <div className="bg-gray-900 rounded-lg shadow-lg overflow-hidden mb-6 text-gray-200 border border-gray-800">
         <div 
-          className="flex items-center justify-between p-4 cursor-pointer bg-purple-700"
+          className="flex items-center justify-between p-4 cursor-pointer bg-gray-800"
           onClick={() => toggleSection('heatmap')}
         >
           <h2 className="text-xl font-semibold flex items-center">
-            <Calendar className="mr-2" /> Submission Activity
+            <Calendar className="mr-2 text-indigo-400" /> Submission Activity
           </h2>
-          {expandedSections.heatmap ? <ChevronUp /> : <ChevronDown />}
+          {expandedSections.heatmap ? 
+            <ChevronUp className="text-indigo-400" /> : 
+            <ChevronDown className="text-indigo-400" />
+          }
         </div>
         
         {expandedSections.heatmap && (
           <div className="p-4">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center text-sm text-purple-200 mb-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center text-sm text-gray-400 mb-4">
               <div>
-                <span className="font-medium text-white">{submissionHeatmap.activeDays}</span> active days, 
-                <span className="font-medium ml-1 text-white">{submissionHeatmap.totalSubmissions}</span> total submissions
+                <span className="font-medium text-gray-200">{submissionHeatmap.activeDays}</span> active days, 
+                <span className="font-medium ml-1 text-gray-200">{submissionHeatmap.totalSubmissions}</span> total submissions
               </div>
               <div className="flex items-center mt-2 md:mt-0">
                 <span className="mr-2">Less</span>
                 <div className="flex items-center space-x-1">
-                  <div className="w-3 h-3 bg-gray-600 rounded"></div>
-                  <div className="w-3 h-3 bg-purple-300 rounded"></div>
-                  <div className="w-3 h-3 bg-purple-400 rounded"></div>
-                  <div className="w-3 h-3 bg-purple-500 rounded"></div>
-                  <div className="w-3 h-3 bg-purple-600 rounded"></div>
-                  <div className="w-3 h-3 bg-purple-700 rounded"></div>
+                  <div className="w-3 h-3 bg-gray-800 rounded"></div>
+                  <div className="w-3 h-3 bg-indigo-200 rounded"></div>
+                  <div className="w-3 h-3 bg-indigo-300 rounded"></div>
+                  <div className="w-3 h-3 bg-indigo-400 rounded"></div>
+                  <div className="w-3 h-3 bg-indigo-500 rounded"></div>
+                  <div className="w-3 h-3 bg-indigo-600 rounded"></div>
                 </div>
                 <span className="ml-2">More</span>
               </div>
@@ -418,50 +414,53 @@ export default function CodeChefStats({ data }) {
       </div>
 
       {/* Contest Performance Graph */}
-      <div className="bg-purple-800 rounded-lg shadow-lg overflow-hidden mb-6 text-white">
+      <div className="bg-gray-900 rounded-lg shadow-lg overflow-hidden mb-6 text-gray-200 border border-gray-800">
         <div 
-          className="flex items-center justify-between p-4 cursor-pointer bg-purple-700"
+          className="flex items-center justify-between p-4 cursor-pointer bg-gray-800"
           onClick={() => toggleSection('contest')}
         >
           <h2 className="text-xl font-semibold flex items-center">
-            <Star className="mr-2" /> Contest Performance
+            <Star className="mr-2 text-indigo-400" /> Contest Performance
           </h2>
-          {expandedSections.contest ? <ChevronUp /> : <ChevronDown />}
+          {expandedSections.contest ? 
+            <ChevronUp className="text-indigo-400" /> : 
+            <ChevronDown className="text-indigo-400" />
+          }
         </div>
         
         {expandedSections.contest && (
           <div className="p-4">
             <div className="mb-4 flex flex-wrap gap-3">
-              <div className="bg-purple-700 text-purple-100 px-3 py-1 rounded-full text-sm">
+              <div className="bg-gray-800 text-gray-200 px-3 py-1 rounded-full text-sm border border-gray-700">
                 Contests: {contestGraph.contestsParticipated}
               </div>
-              <div className="bg-purple-700 text-purple-100 px-3 py-1 rounded-full text-sm">
+              <div className="bg-gray-800 text-gray-200 px-3 py-1 rounded-full text-sm border border-gray-700">
                 Highest Rating: {contestGraph.highestRating}
               </div>
-              <div className="bg-purple-700 text-purple-100 px-3 py-1 rounded-full text-sm">
+              <div className="bg-gray-800 text-gray-200 px-3 py-1 rounded-full text-sm border border-gray-700">
                 Best Rank: {contestGraph.bestRank}
               </div>
             </div>
             
-            <div className="w-full h-64 md:h-80 bg-purple-900 rounded-lg p-4">
+            <div className="w-full h-64 md:h-80 bg-gray-800 rounded-lg p-4 border border-gray-700">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={chartData}
                   margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#8b5cf6" opacity={0.3} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#6b7280" opacity={0.2} />
                   <XAxis 
                     dataKey="name" 
-                    tick={{ fontSize: 12, fill: '#e9d5ff' }} 
+                    tick={{ fontSize: 12, fill: '#d1d5db' }} 
                     angle={-45} 
                     textAnchor="end"
                     height={60}
-                    stroke="#e9d5ff"
+                    stroke="#6b7280"
                   />
                   <YAxis 
                     domain={['dataMin - 100', 'dataMax + 100']} 
-                    tick={{ fill: '#e9d5ff' }}
-                    stroke="#e9d5ff"
+                    tick={{ fill: '#d1d5db' }}
+                    stroke="#6b7280"
                   />
                   <Tooltip 
                     formatter={(value) => [`${value}`, 'Rating']}
@@ -469,16 +468,17 @@ export default function CodeChefStats({ data }) {
                       const item = items[0]?.payload;
                       return `${label} (${item?.date})`;
                     }}
-                    contentStyle={{ backgroundColor: '#4c1d95', border: 'none', color: '#e9d5ff' }}
+                    contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', color: '#d1d5db', borderRadius: '4px' }}
                   />
-                  <Legend wrapperStyle={{ color: '#e9d5ff' }} />
+                  <Legend wrapperStyle={{ color: '#d1d5db' }} />
                   <Line 
                     type="monotone" 
                     dataKey="rating" 
-                    stroke="#c084fc" 
+                    stroke="#818cf8" 
                     strokeWidth={2}
-                    dot={{ r: 4, fill: '#c084fc' }}
-                    activeDot={{ r: 6, fill: '#e9d5ff' }}
+                    dot={{ r: 4, fill: '#6366f1' }}
+                    activeDot={{ r: 6, fill: '#c7d2fe' }}
+                    animationDuration={1000}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -488,34 +488,34 @@ export default function CodeChefStats({ data }) {
       </div>
 
       {/* Recent Contests Table */}
-      <div className="bg-purple-800 rounded-lg shadow-lg overflow-hidden text-white">
-        <div className="p-4 bg-purple-700">
+      <div className="bg-gray-900 rounded-lg shadow-lg overflow-hidden text-gray-200 border border-gray-800">
+        <div className="p-4 bg-gray-800">
           <h2 className="text-xl font-semibold flex items-center">
-            <Code className="mr-2" /> Recent Contests
+            <Code className="mr-2 text-indigo-400" /> Recent Contests
           </h2>
         </div>
         
         <div className="overflow-x-auto">
-          <table className="min-w-full bg-purple-800">
-            <thead className="bg-purple-700">
+          <table className="min-w-full bg-gray-900">
+            <thead className="bg-gray-800">
               <tr>
-                <th className="py-3 px-4 text-left text-xs font-medium text-purple-200 uppercase tracking-wider">Contest</th>
-                <th className="py-3 px-4 text-left text-xs font-medium text-purple-200 uppercase tracking-wider">Date</th>
-                <th className="py-3 px-4 text-left text-xs font-medium text-purple-200 uppercase tracking-wider">Rating</th>
-                <th className="py-3 px-4 text-left text-xs font-medium text-purple-200 uppercase tracking-wider">Rank</th>
+                <th className="py-3 px-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Contest</th>
+                <th className="py-3 px-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Date</th>
+                <th className="py-3 px-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Rating</th>
+                <th className="py-3 px-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Rank</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-purple-700">
+            <tbody className="divide-y divide-gray-800">
               {contestGraph.contestHistory.slice(0, 5).map((contest, index) => (
-                <tr key={index} className="hover:bg-purple-700">
+                <tr key={index} className="hover:bg-gray-800 transition-colors duration-150">
                   <td className="py-3 px-4 text-sm">{contest.contestName}</td>
-                  <td className="py-3 px-4 text-sm text-purple-300">{contest.date}</td>
+                  <td className="py-3 px-4 text-sm text-gray-400">{contest.date}</td>
                   <td className="py-3 px-4">
-                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-purple-600 text-purple-100">
+                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-indigo-900 text-indigo-100 border border-indigo-700">
                       {contest.rating}
                     </span>
                   </td>
-                  <td className="py-3 px-4 text-sm text-purple-300">#{contest.rank}</td>
+                  <td className="py-3 px-4 text-sm text-gray-400">#{contest.rank}</td>
                 </tr>
               ))}
             </tbody>

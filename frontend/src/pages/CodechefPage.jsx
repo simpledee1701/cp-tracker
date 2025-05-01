@@ -41,16 +41,6 @@ const CodechefPage = ({ username = 'suveerprasad10' }) => {
             <CodeChefStats data={responseData} />
           )}
         </motion.div>
-
-        <motion.div 
-          className="text-center mt-12 text-purple-300"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.5 }}
-        >
-          {/* Optional Footer or Message */}
-          <p>Powered by CodeChef API</p>
-        </motion.div>
       </main>
     </div>
   );
