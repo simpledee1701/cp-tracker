@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
 
-
 const RecentContests = ({ contests=[] }) => (
     <motion.div 
       initial={{ opacity: 0 }}
