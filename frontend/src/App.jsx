@@ -6,11 +6,17 @@ import Contest from './pages/Contest'
 import LeetcodePage from './pages/LeetcodePage'
 import CodechefPage from './pages/CodechefPage'
 import CodeforcesPage from './pages/CodeforcesPage'
+import Start from './pages/Start'
+import Login from './pages/Login'
+import SignUp from './pages/SignUp'
 
 function App() {
   return (
     <>
     <Routes>
+      <Route path='/' element={<Start/>} />
+      <Route path='/login' element={<Login/>} />
+      <Route path='/signup' element={<SignUp/>} />
       <Route path='/home' element={<Home/>} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/contest" element={<Contest />} />
