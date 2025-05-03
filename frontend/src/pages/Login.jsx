@@ -44,21 +44,6 @@ export default function Login() {
     setIsLoading(false);
   };
 
-  const handleGoogleLogin = async () => {
-    setIsLoading(true);
-    setError('');
-    setMessage('');
-
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-    });
-
-    if (error) {
-      setError(error.message);
-      setIsLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -162,34 +147,6 @@ export default function Login() {
                 </button>
               </motion.div>
             </motion.form>
-
-            <motion.div variants={itemVariants} className="mt-6">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">Or continue with</span>
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <button
-                  type="button"
-                  onClick={handleGoogleLogin}
-                  disabled={isLoading}
-                  className="w-full flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-                >
-                  <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M21.35 11.1h-9v2.7h5.4c-.25 1.5-1.3 2.75-2.9 3.3v2.75h4.7c2.75-2.5 3.9-6.2 3.4-10.75z" />
-                    <path fill="#34A853" d="M12.35 21c2.6 0 4.75-.9 6.3-2.5l-3-2.5c-.8.55-1.85.9-3.3.9-2.5 0-4.65-1.7-5.4-4H3.35v2.55C4.95 19.55 8.3 21 12.35 21z" />
-                    <path fill="#FBBC05" d="M6.95 12.25c-.2-.55-.3-1.15-.3-1.75s.1-1.2.3-1.75V6.2H3.35c-.7 1.4-1 2.9-1 4.3s.3 2.9 1 4.3l3.6-2.55z" />
-                    <path fill="#EA4335" d="M12.35 4.5c1.4 0 2.65.45 3.6 1.3l2.7-2.7C17.1 1.6 14.95.5 12.35.5 8.3.5 4.95 2.1 3.35 5.2l3.6 2.55c.75-2.25 2.9-3.9 5.4-3.9z" />
-                  </svg>
-                  Continue with Google
-                </button>
-              </div>
-            </motion.div>
           </div>
         </motion.div>
       </div>
