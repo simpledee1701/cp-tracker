@@ -4,6 +4,7 @@ const cors = require('cors');
 const leetcodeRoutes = require('./routes/leetcodeRoutes');
 const codechefRoutes = require('./routes/codechefRoutes');
 const codeforcesRoutes = require('./routes/codeforcesRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,6 +12,7 @@ const PORT = process.env.PORT || 3000;
 app.use(cors({
   origin: 'http://localhost:5173',
   credentials: true,
+  exposedHeaders: ['Authorization']
 }));
 
 app.use(cors());
@@ -20,6 +22,7 @@ app.use(express.json());
 app.use('/api/leetcode', leetcodeRoutes);
 app.use('/api/codechef', codechefRoutes);
 app.use('/api/codeforces',codeforcesRoutes);
+app.use('/api/users', userRoutes);
 
 app.use((err, req, res, next) => {
   console.error('Error:', err);

@@ -24,8 +24,6 @@ const itemVariants = {
   }
 };
 
-const API_URL = 'http://localhost:3000/api/auth';
-
 export default function SignUp() {
   const [formData, setFormData] = useState({
     email: '',
@@ -124,7 +122,7 @@ export default function SignUp() {
       const result = await signUpNewUser(formData.email, formData.password);
       setSuccess('Account created successfully! Redirecting...');
       setTimeout(() => {
-        window.location.href = '/profile';
+        navigate('/profileform');
       }, 1500);
     } catch (err) {
       console.error('Signup error:', err);

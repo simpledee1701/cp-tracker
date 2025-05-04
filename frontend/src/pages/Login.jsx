@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { supabase } from '../components/supabase';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, LogIn } from 'lucide-react';
 import { UserAuth } from '../context/AuthContext';
@@ -35,7 +34,6 @@ export default function Login() {
     setIsLoading(true);
     setError('');
     setMessage('');
-
     try {
       const result = await signInUser(email, password);
       setSuccess('Login successful! Redirecting...');

@@ -113,7 +113,9 @@ const Header = () => {
             className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-400 flex items-center justify-center shadow-lg"
             whileHover={{ scale: 1.1 }}
           >
-            <span className="text-sm font-medium">CP</span>
+            <Link to="/profile" className="hover:text-purple-300 font-medium transition-colors duration-300">
+            CP
+          </Link>
           </motion.div>
         </motion.div>
       </div>
