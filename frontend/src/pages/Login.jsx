@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, LogIn } from 'lucide-react';
 import { UserAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useContext } from 'react';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -28,27 +30,36 @@ export default function Login() {
 
   const {session, signInUser} = UserAuth()
   const navigate = useNavigate() 
-
+  useEffect(() => {
+    if (session?.user) {
+      navigate('/profile'); // Redirect if user is already signed in
+    }
+  }, [session, navigate]);
+  
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-    setMessage('');
+    setSuccess('');
     try {
-      const result = await signInUser(email, password);
-      setSuccess('Login successful! Redirecting...');
-      setTimeout(() => {
-        navigate('/profile');
-      }, 1500);
+      const { data, error } = await signInUser(email, password);
+  
+      if (error) {
+        setError('Bad credentials');
+      } else if (data?.user) {
+        setSuccess('Login successful! Redirecting...');
+        setTimeout(() => {
+          navigate('/profileform');
+        }, 1500);
+      }
     } catch (err) {
       console.error('Login error:', err);
-      setError(
-        err.response?.data?.error ||
-        'Invalid login credentials. Please try again.'
-      );
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
-
+  
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
