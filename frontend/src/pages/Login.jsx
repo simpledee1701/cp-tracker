@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { supabase } from '../components/supabase';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, LogIn } from 'lucide-react';
+import { UserAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -23,6 +25,10 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const {session, signInUser} = UserAuth()
+  const navigate = useNavigate() 
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -30,18 +36,19 @@ export default function Login() {
     setError('');
     setMessage('');
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      setError(error.message);
-    } else {
-      window.location.href = '/dashboard'; // Or use React Router
+    try {
+      const result = await signInUser(email, password);
+      setSuccess('Login successful! Redirecting...');
+      setTimeout(() => {
+        navigate('/profile');
+      }, 1500);
+    } catch (err) {
+      console.error('Login error:', err);
+      setError(
+        err.response?.data?.error ||
+        'Invalid login credentials. Please try again.'
+      );
     }
-
-    setIsLoading(false);
   };
 
   return (
