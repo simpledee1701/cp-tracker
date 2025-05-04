@@ -43,13 +43,12 @@ export default function Login() {
     setSuccess('');
     try {
       const { data, error } = await signInUser(email, password);
-  
       if (error) {
         setError('Bad credentials');
       } else if (data?.user) {
         setSuccess('Login successful! Redirecting...');
         setTimeout(() => {
-          navigate('/profileform');
+          navigate('/profile');
         }, 1500);
       }
     } catch (err) {
