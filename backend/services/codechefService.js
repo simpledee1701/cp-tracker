@@ -234,7 +234,7 @@ const codechefService = {
           platform: 'CodeChef',
           startTime: new Date(contest.contest_start_date).getTime(),
           endTime: new Date(contest.contest_end_date).getTime(),
-          duration: contest.contest_duration + ' hours',
+          duration: contest.contest_duration/60 + ' hours',
           url: `https://www.codechef.com/${contest.contest_code}`
         }));
   

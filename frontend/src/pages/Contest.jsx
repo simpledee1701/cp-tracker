@@ -1,10 +1,10 @@
-// src/pages/Contests.jsx
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CalendarIcon, ChartPieIcon, ClockIcon, FireIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import ContestCard from '../components/ContestCard';
 import PlatformFilter from '../components/PlatformFilter';
-import Header from '../components/Header';
+import Headers from '../components/Headers';
+import ContestCalendar from '../components/ContestCalendar';
 
 const Contest = () => {
   const [contests, setContests] = useState([]);
@@ -12,14 +12,38 @@ const Contest = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // Mock data - replace with API call
+  const parseDuration = (duration) => {
+    const [time, unit] = duration.split(' ');
+    const timeValue = parseFloat(time);
+    return unit.includes('hour') ? Math.round(timeValue * 60) : timeValue;
+  };
+
   useEffect(() => {
     const fetchContests = async () => {
-      setTimeout(() => {
-        setContests(mockContests);
+      try {
+        const response = await fetch('/api/contests/upcoming');
+        const data = await response.json();
+        
+        if (data.success) {
+          const transformedContests = data.contests.map(contest => ({
+            id: `${contest.name}-${contest.startTime}`,
+            title: contest.name,
+            platform: contest.platform.toLowerCase(),
+            startTime: contest.startTime,
+            endTime: contest.endTime,
+            duration: parseDuration(contest.duration),
+            url: contest.url,
+            
+          }));
+          setContests(transformedContests);
+        }
+      } catch (error) {
+        console.error('Error fetching contests:', error);
+      } finally {
         setLoading(false);
-      }, 1500);
+      }
     };
+
     fetchContests();
   }, []);
 
@@ -30,8 +54,8 @@ const Contest = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 text-gray-100">
-      <Header />
+    <div className="min-h-screen  bg-gradient-to-b from-gray-900 to-gray-800 text-white">
+      <Headers />
       <main className="container mx-auto px-4 py-8">
         {/* Header Section */}
         <motion.div
@@ -135,30 +159,7 @@ const Contest = () => {
             </motion.div>
 
             {/* Calendar Widget */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="bg-black/30 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-xl"
-            >
-              <h2 className="text-xl font-semibold flex items-center gap-2 mb-4">
-                <CalendarIcon className="w-6 h-6 text-purple-400" />
-                Contest Calendar
-              </h2>
-              
-              <div className="grid grid-cols-7 gap-1">
-                {[...Array(31)].map((_, day) => (
-                  <div
-                    key={day + 1}
-                    className="aspect-square text-center p-1 text-sm hover:bg-purple-500/20 rounded cursor-pointer border border-transparent hover:border-purple-500/30 transition-colors"
-                  >
-                    <div className="text-gray-400">{day + 1}</div>
-                    {Math.random() > 0.8 && (
-                      <div className="w-2 h-2 mx-auto bg-purple-500 rounded-full" />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </motion.div>
+            <ContestCalendar contests={filteredContests} />
 
             {/* Quick Links */}
             <motion.div
@@ -182,7 +183,20 @@ const Contest = () => {
                     >
                       <span className="truncate">{contest.title}</span>
                       <span className="text-purple-400 text-sm whitespace-nowrap">
-                        {contest.participants}+
+                        <div className="mt-4 flex justify-end">
+                          <motion.a
+                            href={contest.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-purple-300 hover:text-white text-sm font-medium flex items-center"
+                            whileHover={{ x: 3 }}
+                          >
+                            Visit
+                            <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                          </motion.a>
+                        </div>
                       </span>
                     </div>
                   ))}
@@ -194,32 +208,5 @@ const Contest = () => {
     </div>
   );
 };
-
-// Mock data
-const mockContests = [
-  {
-    id: 1,
-    title: 'Weekly Contest 345',
-    platform: 'leetcode',
-    startTime: '2023-08-19T06:30:00Z',
-    endTime: '2023-08-19T08:00:00Z',
-    duration: 90,
-    url: '#',
-    registered: true,
-    participants: 15000
-  },
-  {
-    id: 2,
-    title: 'Codeforces Round #892 (Div. 2)',
-    platform: 'codeforces',
-    startTime: '2023-08-20T11:05:00Z',
-    endTime: '2023-08-20T13:05:00Z',
-    duration: 120,
-    url: '#',
-    registered: false,
-    participants: 23000
-  },
-  // Add more mock contests...
-];
 
 export default Contest;

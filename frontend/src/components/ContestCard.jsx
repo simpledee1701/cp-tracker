@@ -57,22 +57,7 @@ const ContestCard = ({ contest }) => {
             <span className="text-xs text-gray-400">
               {formatDistanceToNow(startDate, { addSuffix: true })}
             </span>
-            {contest.registered ? (
-              <motion.span 
-                className="mt-2 px-3 py-1 bg-green-500/20 text-green-300 text-xs rounded-full backdrop-blur-sm"
-                whileHover={{ scale: 1.05 }}
-              >
-                Registered
-              </motion.span>
-            ) : (
-              <motion.button 
-                className="mt-2 px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs rounded-full hover:shadow-lg transition-all"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Register
-              </motion.button>
-            )}
+            
           </div>
         </div>
         <div className="mt-4 flex justify-end">

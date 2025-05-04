@@ -6,7 +6,6 @@ const platforms = [
   { id: 'leetcode', name: 'LeetCode' },
   { id: 'codeforces', name: 'Codeforces' },
   { id: 'codechef', name: 'CodeChef' },
-  { id: 'gfg', name: 'GeeksforGeeks' }
 ];
 
 const PlatformFilter = ({ selectedPlatform, setSelectedPlatform }) => {
