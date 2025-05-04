@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Code, Cpu, HardDrive, User, Mail, Check, X, Save } from 'lucide-react';
 import { UserAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import Headers from '../components/Headers';
+
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -24,9 +24,6 @@ export default function Profile() {
     codeforces_username: '',
     codechef_username: '',
     leetcode_username: '',
-    college: '',
-    degree: '',
-    updated_at: null,
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
