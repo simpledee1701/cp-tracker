@@ -1,232 +1,229 @@
-// src/pages/Profile.jsx
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CodeBracketIcon, TrophyIcon, CalendarIcon, ChartBarIcon } from '@heroicons/react/24/outline';
-import ActivityHeatmap from '../components/ActivityHeatmap';
-import Header from '../components/Header';
+import { Code, Cpu, HardDrive, User, Mail, Check, X, Save } from 'lucide-react';
+import { UserAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import Headers from '../components/Headers';
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { delayChildren: 0.3, staggerChildren: 0.1 },
+  },
+};
 
-const Profile = () => {
-  const navigate = useNavigate();
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: { y: 0, opacity: 1 },
+};
 
-  // Mock data - replace with your actual data
-  const profileData = {
-    username: 'Sai Suveer',
-    avatar: 'SS',
-    totalSolved: 1285,
-    contestsParticipated: 42,
-    currentRating: 1942,
-    maxRating: 2100,
-    platformStats: {
-      leetcode: { solved: 450, contests: 15, rating: 1850 },
-      codeforces: { solved: 320, contests: 20, rating: 1600 },
-      codechef: { solved: 280, contests: 7, rating: 2100 },
-      gfg: { solved: 235, contests: 0, rating: null }
-    },
-    activityHeatmap: Array(365).fill().map(() => Math.floor(Math.random() * 5)),
-    recentAchievements: [
-      { title: 'Codeforces Expert', platform: 'codeforces', date: '2023-05-01' },
-      { title: 'LeetCode 400 Club', platform: 'leetcode', date: '2023-04-15' },
-      { title: '5 Star Coder', platform: 'codechef', date: '2023-03-20' }
-    ]
+export default function Profile() {
+  const [profileData, setProfileData] = useState({
+    name: '',
+    email: '',
+    codeforces_username: '',
+    codechef_username: '',
+    leetcode_username: '',
+    college: '',
+    degree: '',
+    updated_at: null,
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const { session } = UserAuth();
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!session?.user) return;
+
+      try {
+        setIsLoading(true);
+        const response = await fetch(`/api/users/${session.user.id}`, {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch profile');
+
+        const responseData = await response.json();
+        const data = Array.isArray(responseData) ? responseData[0] : responseData;
+        setProfileData(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [session]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setProfileData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  const handlePlatformClick = (platform) => {
-    if (platform === 'gfg') {
-      navigate('/gfg');
-    } else if (platform === 'codeforces') {
-      navigate('/codeforces');
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const response = await fetch(`/api/users/${session.user.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify(profileData),
+      });
+
+      if (!response.ok) throw new Error('Failed to update profile');
+
+      setSuccess('Profile updated successfully!');
+    } catch (err) {
+      setError(err.message);
     }
-    else if(platform === 'leetcode'){
-      navigate('/leetcode');
-    }
-    else if(platform ==='codechef'){
-      navigate('/codechef')
-    }
-    // Add more conditions for other platforms if necessary
   };
-
-
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 text-gray-100">
-      <Header />
-      <main className="container mx-auto px-4 py-8">
-        {/* Profile Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="bg-black/30 backdrop-blur-md rounded-2xl p-6 mb-8 border border-white/10 shadow-xl"
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-6">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-3xl font-bold shadow-lg">
-                {profileData.avatar}
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-300 to-pink-200">
-                  {profileData.username}
-                </h1>
-                <p className="text-gray-400 mt-1">Competitive Programmer</p>
-              </div>
-            </div>
-            <button className="px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg transition-all">
-              Edit Profile
-            </button>
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
+      <Headers/>
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex flex-col py- sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="text-center">
+            <motion.h2
+              className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              {profileData.name} Profile
+            </motion.h2>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-            <StatCard
-              icon={<TrophyIcon className="w-6 h-6" />}
-              title="Current Rating"
-              value={profileData.currentRating}
-              delta={profileData.currentRating - profileData.maxRating + 158}
-            />
-            <StatCard
-              icon={<CodeBracketIcon className="w-6 h-6" />}
-              title="Problems Solved"
-              value={profileData.totalSolved}
-            />
-            <StatCard
-              icon={<CalendarIcon className="w-6 h-6" />}
-              title="Contests"
-              value={profileData.contestsParticipated}
-            />
-            <StatCard
-              icon={<ChartBarIcon className="w-6 h-6" />}
-              title="Max Rating"
-              value={profileData.maxRating}
-              isMax
-            />
-          </div>
-        </motion.div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Platform Stats */}
           <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      className="bg-black/30 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-xl"
-    >
-      <h2 className="text-xl font-semibold mb-6">Platform Statistics</h2>
-      <div className="space-y-4">
-        {Object.entries(profileData.platformStats).map(([platform, stats]) => (
-          <div key={platform} onClick={() => handlePlatformClick(platform)}>
-            <PlatformProgress
-              platform={platform}
-              solved={stats.solved}
-              contests={stats.contests}
-              rating={stats.rating}
-            />
-          </div>
-        ))}
-      </div>
-    </motion.div>
-
-          {/* Activity Heatmap */}
-          <ActivityHeatmap />
-
-          {/* Achievements */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="lg:col-span-2 bg-black/30 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-xl"
+            className="mt-8 sm:mx-auto sm:w-full sm:max-w-md"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
           >
-            <h2 className="text-xl font-semibold mb-6">Recent Achievements</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {profileData.recentAchievements.map((achievement, index) => (
-                <AchievementCard key={index} achievement={achievement} delay={index * 0.1} />
-              ))}
+            <div className="bg-white dark:bg-gray-800 py-8 px-4 shadow-lg sm:rounded-lg sm:px-10">
+              {error && (
+                <motion.div
+                  className="mb-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-md"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <div className="flex items-center">
+                    <X className="h-5 w-5 mr-2" />
+                    {error}
+                  </div>
+                </motion.div>
+              )}
+              {success && (
+                <motion.div
+                  className="mb-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 px-4 py-3 rounded-md"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <div className="flex items-center">
+                    <Check className="h-5 w-5 mr-2" />
+                    {success}
+                  </div>
+                </motion.div>
+              )}
+
+              <motion.form className="space-y-6" onSubmit={handleSave} variants={containerVariants}>
+                {/* Full Name */}
+                <motion.div variants={itemVariants}>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Full Name
+                  </label>
+                  <div className="mt-1 relative rounded-md shadow-sm">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <User className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      id="name"
+                      name="name"
+                      type="text"
+                      value={profileData.name}
+                      readOnly
+                      className="block w-full pl-10 pr-3 py-2 border rounded-md bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed sm:text-sm"
+                    />
+                  </div>
+                </motion.div>
+
+                {/* Email */}
+                <motion.div variants={itemVariants}>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Email
+                  </label>
+                  <div className="mt-1 relative rounded-md shadow-sm">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Mail className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={profileData.email}
+                      readOnly
+                      className="block w-full pl-10 pr-3 py-2 border rounded-md bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed sm:text-sm"
+                    />
+                  </div>
+                </motion.div>
+
+                {/* CP Handles */}
+                <motion.div variants={itemVariants}>
+                  {[
+                    { id: 'codeforces_username', icon: Code, label: 'Codeforces Username' },
+                    { id: 'codechef_username', icon: Cpu, label: 'CodeChef Username' },
+                    { id: 'leetcode_username', icon: HardDrive, label: 'LeetCode Username' },
+                  ].map(({ id, icon: Icon, label }) => (
+                    <div className="mb-4" key={id}>
+                      <label htmlFor={id} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        {label}
+                      </label>
+                      <div className="mt-1 relative rounded-md shadow-sm">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Icon className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <input
+                          id={id}
+                          name={id}
+                          type="text"
+                          value={profileData[id]}
+                          onChange={handleChange}
+                          className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-white dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:text-white sm:text-sm"
+                          placeholder={`${label} username`}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </motion.div>
+
+                {/* Save Button */}
+                <motion.div variants={itemVariants} className="text-right">
+                  <button
+                    type="submit"
+                    className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    Save
+                  </button>
+                </motion.div>
+              </motion.form>
             </div>
           </motion.div>
         </div>
-      </main>
-    </div>
-  );
-};
-
-// Helper Components
-const StatCard = ({ icon, title, value, delta, isMax }) => (
-  <div className="bg-white/5 p-4 rounded-xl backdrop-blur-sm border border-white/10 hover:border-purple-400/30 transition-all">
-    <div className="flex items-center space-x-3">
-      <div className="p-2 bg-purple-500/20 rounded-lg">{icon}</div>
-      <div>
-        <p className="text-gray-400 text-sm">{title}</p>
-        <p className="text-2xl font-bold">
-          {value}
-          {delta && (
-            <span className={`text-sm ml-2 ${delta > 0 ? 'text-green-400' : 'text-red-400'}`}>
-              ({delta > 0 ? '+' : ''}{delta})
-            </span>
-          )}
-          {isMax && <span className="text-yellow-400 text-sm ml-2">🌟</span>}
-        </p>
-      </div>
-    </div>
-  </div>
-);
-
-const PlatformProgress = ({ platform, solved, contests, rating }) => {
-  const platformColors = {
-    leetcode: 'from-orange-500/30 to-orange-600/20',
-    codeforces: 'from-blue-500/30 to-blue-600/20',
-    codechef: 'from-yellow-500/30 to-yellow-600/20',
-    gfg: 'from-green-500/30 to-green-600/20'
-  };
-
-  return (
-    <div className="bg-white/5 p-4 rounded-xl backdrop-blur-sm border border-white/10 hover:border-purple-400/30 transition-all">
-      <div className="flex justify-between items-center mb-2">
-        <span className="capitalize font-medium">{platform}</span>
-        {rating && <span className="text-sm bg-black/30 px-2 py-1 rounded">{rating}</span>}
-      </div>
-      <div className="space-y-2">
-        <div className="flex justify-between text-sm text-gray-400">
-          <span>{solved} Problems Solved</span>
-          <span>{contests} Contests</span>
-        </div>
-        <div className={`h-2 rounded-full bg-gradient-to-r ${platformColors[platform]}`}>
-          <div 
-            className="h-full bg-white/30 rounded-full transition-all duration-500" 
-            style={{ width: `${(solved / 500) * 100}%` }}
-          />
-        </div>
       </div>
     </div>
   );
-};
-
-const AchievementCard = ({ achievement, delay }) => (
-  <motion.div
-    initial={{ opacity: 0, scale: 0.9 }}
-    animate={{ opacity: 1, scale: 1 }}
-    transition={{ delay }}
-    className="bg-gradient-to-br from-purple-900/40 to-violet-800/40 p-4 rounded-xl backdrop-blur-sm border border-white/10 hover:border-purple-400/30 transition-all"
-  >
-    <div className="flex items-center space-x-3">
-      <div className="p-2 bg-purple-500/20 rounded-lg">
-        <TrophyIcon className="w-6 h-6 text-yellow-400" />
-      </div>
-      <div>
-        <h3 className="font-medium">{achievement.title}</h3>
-        <p className="text-sm text-gray-400">{achievement.platform}</p>
-        <p className="text-xs text-gray-500 mt-1">
-          {new Date(achievement.date).toLocaleDateString()}
-        </p>
-      </div>
-    </div>
-  </motion.div>
-);
-
-const getHeatmapColor = (count) => {
-  const colors = [
-    'bg-gray-800',
-    'bg-purple-900/60',
-    'bg-purple-800/60',
-    'bg-purple-700/60',
-    'bg-purple-600/60'
-  ];
-  return colors[count] || colors[0];
-};
-
-export default Profile;
+}
