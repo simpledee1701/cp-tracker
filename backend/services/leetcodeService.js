@@ -1,4 +1,5 @@
 const fetch = require('node-fetch');
+const axios = require('axios');
 
 class LeetcodeService {
   constructor() {
@@ -397,7 +398,8 @@ class LeetcodeService {
     }
   }
 
-  async getUpcomingContests() {
+  
+  async getLeetCodeContests() {
     const query = `
       query upcomingContests {
         upcomingContests {
@@ -408,30 +410,26 @@ class LeetcodeService {
         }
       }
     `;
-    return this.makeGraphQLRequest(query, {});
+  
+    const response = await this.makeGraphQLRequest(query, {});
+  
+  
+    const contests = response.upcomingContests;
+    if (!contests || !Array.isArray(contests)) return [];
+  
+    const upcomingContest = contests.filter(c => c.startTime * 1000 > Date.now());
+
+  
+    return upcomingContest.map(contest => ({
+      name: contest.title,
+      platform: "LeetCode",
+      startTime: contest.startTime * 1000,
+      endTime: (contest.startTime + contest.duration) * 1000,
+      duration: `${Math.floor(contest.duration / 3600)} hours`,
+      url: `https://leetcode.com/contest/${contest.titleSlug}/`
+    }));
   }
   
-  async getUserRegisteredUpcomingContests(username) {
-    try {
-      const { userContestRankingHistory } = await this.getUserContestRankingInfo(username);
-      const currentTimestamp = Math.floor(Date.now() / 1000); // Current time in seconds
-      
-      if (!Array.isArray(userContestRankingHistory)) {
-        return [];
-      }
-  
-      return userContestRankingHistory
-        .filter(entry => 
-          entry.contest && 
-          entry.contest.startTime > currentTimestamp && 
-          entry.attended === false
-        )
-        .map(entry => entry.contest);
-    } catch (error) {
-      console.error('Error fetching registered contests:', error);
-      throw error;
-    }
-  }
   
 }
 

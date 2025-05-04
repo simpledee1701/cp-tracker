@@ -207,7 +207,44 @@ const codechefService = {
       console.error('Error analyzing profile:', error);
       throw new Error('Failed to analyze profile');
     }
+  },
+
+  async getCodeChefContests(){
+    try {
+      const response = await axios.get(
+        'https://www.codechef.com/api/list/contests/all',
+        {
+          headers: {
+            // Some CodeChef APIs require these headers
+            'Accept': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+          }
+        }
+      );
+  
+      const currentTime = Date.now();
+      
+      const contests = response.data.future_contests
+        .filter(contest => {
+          const contestTime = new Date(contest.contest_start_date).getTime();
+          return contestTime > currentTime;
+        })
+        .map(contest => ({
+          name: contest.contest_name,
+          platform: 'CodeChef',
+          startTime: new Date(contest.contest_start_date).getTime(),
+          endTime: new Date(contest.contest_end_date).getTime(),
+          duration: contest.contest_duration + ' hours',
+          url: `https://www.codechef.com/${contest.contest_code}`
+        }));
+  
+      return contests;
+    } catch (error) {
+      console.error('CodeChef API Error:', error.message);
+      throw new Error('Failed to fetch CodeChef contests');
+    }
   }
+  
 };
 
 module.exports = codechefService;

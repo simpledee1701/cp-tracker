@@ -30,11 +30,35 @@ const getUserSubmissions = async (handle) => {
       throw new Error('Failed to fetch submissions');
     }
   };
+  const getCodeforcesContests = async () => {
+    try {
+      const response = await axios.get(
+        'https://codeforces.com/api/contest.list?gym=false'
+      );
+      
+      const contests = response.data.result
+        .filter(contest => contest.phase === 'BEFORE')
+        .map(contest => ({
+          name: contest.name,
+          platform: 'Codeforces',
+          startTime: contest.startTimeSeconds * 1000, // Convert to milliseconds
+          endTime: (contest.startTimeSeconds + contest.durationSeconds) * 1000,
+          duration: contest.durationSeconds / 3600 + ' hours', // Convert seconds to hours
+          url: `https://codeforces.com/contests/${contest.id}`
+        }));
+  
+      return contests;
+    } catch (error) {
+      console.error('Codeforces API Error:', error.message);
+      throw new Error('Failed to fetch Codeforces contests');
+    }
+  };
 
 module.exports = {
   getUserInfo,
   getUserRating,
-  getUserSubmissions
+  getUserSubmissions,
+  getCodeforcesContests
 };
 
 
