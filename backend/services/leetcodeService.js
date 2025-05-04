@@ -396,6 +396,43 @@ class LeetcodeService {
       throw error;
     }
   }
+
+  async getUpcomingContests() {
+    const query = `
+      query upcomingContests {
+        upcomingContests {
+          title
+          titleSlug
+          startTime
+          duration
+        }
+      }
+    `;
+    return this.makeGraphQLRequest(query, {});
+  }
+  
+  async getUserRegisteredUpcomingContests(username) {
+    try {
+      const { userContestRankingHistory } = await this.getUserContestRankingInfo(username);
+      const currentTimestamp = Math.floor(Date.now() / 1000); // Current time in seconds
+      
+      if (!Array.isArray(userContestRankingHistory)) {
+        return [];
+      }
+  
+      return userContestRankingHistory
+        .filter(entry => 
+          entry.contest && 
+          entry.contest.startTime > currentTimestamp && 
+          entry.attended === false
+        )
+        .map(entry => entry.contest);
+    } catch (error) {
+      console.error('Error fetching registered contests:', error);
+      throw error;
+    }
+  }
+  
 }
 
 module.exports = new LeetcodeService();
