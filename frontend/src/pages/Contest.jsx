@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CalendarIcon, ChartPieIcon, ClockIcon, FireIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import ContestCard from '../components/ContestCard';
 import PlatformFilter from '../components/PlatformFilter';
-import Headers from '../components/Headers';
+import Header from '../components/Header';
 import ContestCalendar from '../components/ContestCalendar';
 
 const Contest = () => {
@@ -55,7 +55,7 @@ const Contest = () => {
 
   return (
     <div className="min-h-screen  bg-gradient-to-b from-gray-900 to-gray-800 text-white">
-      <Headers />
+      <Header />
       <main className="container mx-auto px-4 py-8">
         {/* Header Section */}
         <motion.div

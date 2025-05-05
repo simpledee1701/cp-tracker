@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import CodeChefStats from '../components/CodechefStats';
-import Headers from '../components/Headers';
+import Header from '../components/Header';
 import { useUserProfile } from '../context/UserProfileContext';
 
 const CodechefPage = () => {
@@ -51,7 +51,7 @@ const CodechefPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
-      <Headers />
+      <Header />
       <main className="container mx-auto px-4 py-8">
         <motion.div
           layout

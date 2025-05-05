@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import LeetCodeStats from '../components/LeetCodeStats';
-import Headers from '../components/Headers';
+import Header from '../components/Header';
 import { useUserProfile } from '../context/UserProfileContext';
 
 const LeetcodePage = () => {
@@ -24,7 +24,7 @@ const LeetcodePage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
-      <Headers />
+      <Header />
       <main className="container mx-auto px-4 py-8">
         <motion.div
           layout

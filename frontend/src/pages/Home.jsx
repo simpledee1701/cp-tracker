@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Header from '../components/Header';
 import ContestCard from '../components/ContestCard';
 import PlatformStats from '../components/PlatformStats';
-import ProfileSummary from '../components/ProfileSummary';
 import UpcomingContests from '../components/UpcomingContests';
 import ContestCalendar from '../components/ContestCalendar';
 

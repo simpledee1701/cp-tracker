@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Code, Cpu, HardDrive, User, Mail, Check, X, Save, Edit, LogOut } from 'lucide-react';
 import { UserAuth } from '../context/AuthContext';
-import Headers from '../components/Headers';
+import Header from '../components/Header';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -120,7 +120,7 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
-      <Headers/>
+      <Header/>
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex flex-col py- sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="text-center">
