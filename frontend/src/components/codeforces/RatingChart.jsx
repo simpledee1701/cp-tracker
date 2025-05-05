@@ -2,12 +2,11 @@ import { subMonths, startOfDay, format } from 'date-fns';
 import Chart from 'react-apexcharts';
 
 const RatingChart = ({ ratingHistory }) => {
-  // Filter data for last 6 months
   const sixMonthsAgo = startOfDay(subMonths(new Date(), 6)).getTime();
   const filteredData = ratingHistory
     .filter(contest => contest.ratingUpdateTimeSeconds * 1000 >= sixMonthsAgo)
     .map(contest => ({
-      x: contest.ratingUpdateTimeSeconds * 1000, // Convert to milliseconds
+      x: contest.ratingUpdateTimeSeconds * 1000,
       y: contest.newRating,
       rank: contest.rank
     }));
@@ -16,11 +15,12 @@ const RatingChart = ({ ratingHistory }) => {
     chart: {
       type: 'area',
       height: 400,
-      foreColor: '#fff',
+      foreColor: '#9CA3AF',
       toolbar: { show: true },
-      zoom: { enabled: false }
+      zoom: { enabled: false },
+      background: 'transparent'
     },
-    colors: ['#FF6B6B'],
+    colors: ['#3B82F6'],
     dataLabels: { enabled: false },
     stroke: { curve: 'smooth', width: 2 },
     fill: {
@@ -37,14 +37,16 @@ const RatingChart = ({ ratingHistory }) => {
       min: sixMonthsAgo,
       max: new Date().getTime(),
       labels: {
-        style: { colors: '#fff' },
+        style: { colors: '#9CA3AF' },
         format: 'MMM dd',
         rotate: -45
       },
       axisBorder: { show: false }
     },
     yaxis: {
-      labels: { style: { colors: '#fff' } },
+      labels: { 
+        style: { colors: '#9CA3AF' } 
+      },
       forceNiceScale: true
     },
     annotations: {
@@ -54,14 +56,14 @@ const RatingChart = ({ ratingHistory }) => {
         marker: {
           size: 6,
           fillColor: '#fff',
-          strokeColor: '#FF6B6B',
+          strokeColor: '#3B82F6',
           radius: 2
         },
         label: {
           text: `#${contest.rank}`,
           style: {
             color: '#fff',
-            background: '#FF6B6B',
+            background: '#3B82F6',
             fontSize: '12px',
             padding: { left: 5, right: 5, top: 2, bottom: 2 }
           }
@@ -75,7 +77,7 @@ const RatingChart = ({ ratingHistory }) => {
       }
     },
     grid: {
-      borderColor: 'rgba(255,255,255,0.1)',
+      borderColor: 'rgba(156, 163, 175, 0.2)',
       strokeDashArray: 4
     }
   };
@@ -86,8 +88,8 @@ const RatingChart = ({ ratingHistory }) => {
   }];
 
   return (
-    <div className="glass p-6 rounded-2xl">
-      <h3 className="text-xl font-semibold mb-4 text-purple-400">
+    <div className="bg-gray-800 rounded-xl shadow-lg border border-gray-700 p-6">
+      <h3 className="text-xl font-semibold text-blue-400 mb-4">
         Rating History (Last 6 Months)
       </h3>
       <Chart 
