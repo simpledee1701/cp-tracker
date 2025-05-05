@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import CodeChefStats from '../components/CodechefStats';
-import Header from '../components/Header';
+import Headers from '../components/Headers';
 import { useUserProfile } from '../context/UserProfileContext';
 
 const CodechefPage = () => {
@@ -50,16 +50,38 @@ const CodechefPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 text-gray-100">
-      <Header />
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
+      <Headers />
       <main className="container mx-auto px-4 py-8">
         <motion.div
           layout
-          className="mb-8 max-w-4xl mx-auto p-6 bg-white/5 backdrop-blur-md rounded-2xl shadow-lg border border-purple-500/30"
+          className="mb-8 max-w-4xl mx-auto p-6 bg-gray-800 rounded-2xl shadow-lg border border-gray-700"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
         >
-          <h2 className="text-2xl font-bold text-purple-300 mb-4">CodeChef Stats</h2>
-          {loading && <p className="text-center text-purple-300">Loading stats...</p>}
-          {error && <p className="text-center text-red-400">Error: {error}</p>}
+          <h2 className="text-2xl font-bold text-blue-400 mb-4">CodeChef Stats</h2>
+          {loading && (
+            <div className="flex justify-center items-center h-64">
+              <div className="flex flex-col items-center">
+                <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                <p className="mt-4 text-blue-300">Loading CodeChef stats...</p>
+              </div>
+            </div>
+          )}
+          {error && (
+            <div className="flex justify-center items-center h-64">
+              <div className="text-center">
+                <p className="text-red-400 mb-4">Error: {error}</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md text-white"
+                >
+                  Try Again
+                </button>
+              </div>
+            </div>
+          )}
           {!loading && !error && statsData && (
             <CodeChefStats data={statsData} />
           )}

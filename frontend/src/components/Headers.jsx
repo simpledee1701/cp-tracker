@@ -93,13 +93,6 @@ const Headers = () => {
           >
             Contests
           </Link>
-
-          <Link
-            to="/profile"
-            className={`hover:text-blue-400 font-medium transition-colors duration-300 ${isActive('/profile') ? 'text-blue-400' : ''}`}
-          >
-            Profile
-          </Link>
         </nav>
 
         {/* Right Icons */}

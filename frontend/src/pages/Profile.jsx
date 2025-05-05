@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Code, Cpu, HardDrive, User, Mail, Check, X, Save } from 'lucide-react';
+import { Code, Cpu, HardDrive, User, Mail, Check, X, Save, Edit, LogOut } from 'lucide-react';
 import { UserAuth } from '../context/AuthContext';
 import Headers from '../components/Headers';
 
@@ -28,7 +28,14 @@ export default function Profile() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
-  const { session } = UserAuth();
+  const [editableFields, setEditableFields] = useState({
+    name: false,
+    email: false,
+    codeforces_username: false,
+    codechef_username: false,
+    leetcode_username: false,
+  });
+  const { session, signOut } = UserAuth();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -65,6 +72,13 @@ export default function Profile() {
     }));
   };
 
+  const toggleEdit = (field) => {
+    setEditableFields(prev => ({
+      ...prev,
+      [field]: !prev[field]
+    }));
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
     setError(null);
@@ -83,8 +97,24 @@ export default function Profile() {
       if (!response.ok) throw new Error('Failed to update profile');
 
       setSuccess('Profile updated successfully!');
+      // Disable all edit modes after save
+      setEditableFields({
+        name: false,
+        email: false,
+        codeforces_username: false,
+        codechef_username: false,
+        leetcode_username: false,
+      });
     } catch (err) {
       setError(err.message);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      setError(error.message);
     }
   };
 
@@ -139,9 +169,18 @@ export default function Profile() {
               <motion.form className="space-y-6" onSubmit={handleSave} variants={containerVariants}>
                 {/* Full Name */}
                 <motion.div variants={itemVariants}>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Full Name
-                  </label>
+                  <div className="flex justify-between items-center">
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Full Name
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => toggleEdit('name')}
+                      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </button>
+                  </div>
                   <div className="mt-1 relative rounded-md shadow-sm">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <User className="h-5 w-5 text-gray-400" />
@@ -151,17 +190,27 @@ export default function Profile() {
                       name="name"
                       type="text"
                       value={profileData.name}
-                      readOnly
-                      className="block w-full pl-10 pr-3 py-2 border rounded-md bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed sm:text-sm"
+                      onChange={handleChange}
+                      readOnly={!editableFields.name}
+                      className={`block w-full pl-10 pr-3 py-2 border rounded-md ${editableFields.name ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'} sm:text-sm`}
                     />
                   </div>
                 </motion.div>
 
                 {/* Email */}
                 <motion.div variants={itemVariants}>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Email
-                  </label>
+                  <div className="flex justify-between items-center">
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Email
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => toggleEdit('email')}
+                      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </button>
+                  </div>
                   <div className="mt-1 relative rounded-md shadow-sm">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <Mail className="h-5 w-5 text-gray-400" />
@@ -171,8 +220,9 @@ export default function Profile() {
                       name="email"
                       type="email"
                       value={profileData.email}
-                      readOnly
-                      className="block w-full pl-10 pr-3 py-2 border rounded-md bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed sm:text-sm"
+                      onChange={handleChange}
+                      readOnly={!editableFields.email}
+                      className={`block w-full pl-10 pr-3 py-2 border rounded-md ${editableFields.email ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'} sm:text-sm`}
                     />
                   </div>
                 </motion.div>
@@ -185,9 +235,18 @@ export default function Profile() {
                     { id: 'leetcode_username', icon: HardDrive, label: 'LeetCode Username' },
                   ].map(({ id, icon: Icon, label }) => (
                     <div className="mb-4" key={id}>
-                      <label htmlFor={id} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        {label}
-                      </label>
+                      <div className="flex justify-between items-center">
+                        <label htmlFor={id} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                          {label}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => toggleEdit(id)}
+                          className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                      </div>
                       <div className="mt-1 relative rounded-md shadow-sm">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                           <Icon className="h-5 w-5 text-gray-400" />
@@ -198,7 +257,8 @@ export default function Profile() {
                           type="text"
                           value={profileData[id]}
                           onChange={handleChange}
-                          className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-white dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:text-white sm:text-sm"
+                          readOnly={!editableFields[id]}
+                          className={`block w-full pl-10 pr-3 py-2 border rounded-md ${editableFields[id] ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'} sm:text-sm`}
                           placeholder={`${label} username`}
                         />
                       </div>
@@ -206,8 +266,19 @@ export default function Profile() {
                   ))}
                 </motion.div>
 
-                {/* Save Button */}
-                <motion.div variants={itemVariants} className="text-right">
+                {/* Action Buttons */}
+                <motion.div 
+                  variants={itemVariants} 
+                  className="flex justify-between items-center pt-4"
+                >
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </button>
                   <button
                     type="submit"
                     className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"

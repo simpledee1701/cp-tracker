@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import LeetCodeStats from '../components/LeetCodeStats';
-import Header from '../components/Header';
+import Headers from '../components/Headers';
 import { useUserProfile } from '../context/UserProfileContext';
 
 const LeetcodePage = () => {
@@ -23,15 +23,22 @@ const LeetcodePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 text-gray-100">
-      <Header />
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
+      <Headers />
       <main className="container mx-auto px-4 py-8">
         <motion.div
           layout
-          className="mb-8 max-w-4xl mx-auto p-6 bg-white/5 backdrop-blur-md rounded-2xl shadow-lg border border-purple-500/30"
+          className="mb-8 max-w-4xl mx-auto p-6 bg-gray-800 rounded-2xl shadow-lg border border-gray-700"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
         >
-          <h2 className="text-2xl font-bold text-purple-300 mb-4">LeetCode Stats</h2>
-          {username ? <LeetCodeStats username={username} /> : null}
+          <h2 className="text-2xl font-bold text-blue-400 mb-4">LeetCode Stats</h2>
+          {username ? <LeetCodeStats username={username} /> : (
+            <div className="text-center py-8 text-gray-400">
+              <p>No LeetCode username configured in your profile</p>
+            </div>
+          )}
         </motion.div>
       </main>
     </div>
