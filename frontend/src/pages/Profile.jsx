@@ -100,7 +100,7 @@ export default function Profile() {
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2 }}
             >
-              {profileData.name} Profile
+              My Profile
             </motion.h2>
           </div>
 

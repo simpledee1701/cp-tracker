@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import RatingGraph from './RatingGraph';
 
-const LeetcodeStats = ({ username = 'SaiSuveer' }) => {
+const LeetcodeStats = ({ username}) => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -90,7 +90,6 @@ const LeetcodeStats = ({ username = 'SaiSuveer' }) => {
     fetchStats();
   }, [username]);
 
-  // Function to retry loading the stats
   const retryFetch = () => {
     fetchStats();
   };

@@ -8,7 +8,6 @@ export const UserProfileProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-
   useEffect(() => {
     const fetchProfile = async () => {
       if (!session?.user) return;

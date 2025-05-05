@@ -3,8 +3,6 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { Calendar, ChevronUp, ChevronDown, Award, Trophy, Activity, Star, Code, Users, TrendingUp, User } from 'lucide-react';
 
 export default function CodeChefStats({ data }) {
-  const [isLoading, setIsLoading] = useState(!data);
-  const [profileData, setProfileData] = useState(data || null);
   const [expandedSections, setExpandedSections] = useState({
     profile: true,
     analysis: true,
@@ -15,17 +13,10 @@ export default function CodeChefStats({ data }) {
   const heatmapRef = useRef(null);
 
   useEffect(() => {
-    if (data) {
-      setProfileData(data);
-      setIsLoading(false);
+    if (data && data.submissionHeatmap && heatmapRef.current) {
+      renderHeatmap(data.submissionHeatmap.heatmapData);
     }
-  }, [data]);
-
-  useEffect(() => {
-    if (profileData && profileData.submissionHeatmap && heatmapRef.current) {
-      renderHeatmap(profileData.submissionHeatmap.heatmapData);
-    }
-  }, [profileData, expandedSections.heatmap]);
+  }, [data, expandedSections.heatmap]);
 
   const toggleSection = (section) => {
     setExpandedSections(prev => ({
@@ -246,24 +237,16 @@ export default function CodeChefStats({ data }) {
   function daysInMonth(d) {
     return 32 - new Date(d.getFullYear(), d.getMonth(), 32).getDate();
   }
-  
-  if (isLoading) {
+
+  if (!data) {
     return (
       <div className="flex justify-center items-center h-64 bg-gray-900 text-gray-200 rounded-lg border border-gray-800">
-        <div className="text-xl">Loading profile data...</div>
+        <div className="text-xl text-red-400">No profile data available</div>
       </div>
     );
   }
 
-  if (!profileData) {
-    return (
-      <div className="flex justify-center items-center h-64 bg-gray-900 text-gray-200 rounded-lg border border-gray-800">
-        <div className="text-xl text-red-400">Failed to load profile data</div>
-      </div>
-    );
-  }
-
-  const { profileInfo, analysis, submissionHeatmap, contestGraph } = profileData;
+  const { profileInfo, analysis, submissionHeatmap, contestGraph } = data;
 
   // Format contest history data for chart
   const chartData = contestGraph.contestHistory.map(contest => ({
