@@ -11,9 +11,13 @@ exports.initiateGoogleAuth = (req, res) => {
     const contestData = req.query.contest;
     const authUrl = oauth2Client.generateAuthUrl({
       access_type: 'offline',
-      scope: ['https://www.googleapis.com/auth/calendar.events'],
+      scope: [
+        'https://www.googleapis.com/auth/calendar',
+        'https://www.googleapis.com/auth/calendar.events'
+      ],
       state: contestData,
-      prompt: 'consent'
+      prompt: 'consent',
+      login_hint: 'deepak.is22@bmsce.ac.in' 
     });
     res.redirect(authUrl);
   } catch (error) {
@@ -31,13 +35,19 @@ exports.handleGoogleCallback = async (req, res) => {
 
     const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
     
-    await calendar.events.insert({
+    const event = await calendar.events.insert({
       calendarId: 'primary',
       requestBody: {
         summary: contest.title,
         description: `Platform: ${contest.platform}\nDuration: ${contest.duration} minutes\nURL: ${contest.url}`,
-        start: { dateTime: contest.start, timeZone: 'UTC' },
-        end: { dateTime: contest.end, timeZone: 'UTC' },
+        start: { 
+          dateTime: contest.startTime,
+          timeZone: 'UTC' 
+        },
+        end: { 
+          dateTime: contest.endTime,
+          timeZone: 'UTC' 
+        },
         reminders: {
           useDefault: false,
           overrides: [{ method: 'email', minutes: 30 }]
@@ -47,7 +57,11 @@ exports.handleGoogleCallback = async (req, res) => {
 
     res.send(`
       <script>
-        window.opener.postMessage({ type: 'CALENDAR_SUCCESS' }, '*');
+        window.opener.postMessage({ 
+          type: 'CALENDAR_SUCCESS',
+          contestId: '${contest.contestId}',
+          googleEventId: '${event.data.id}'
+        }, '*');
         window.close();
       </script>
     `);
@@ -56,7 +70,8 @@ exports.handleGoogleCallback = async (req, res) => {
       <script>
         window.opener.postMessage({
           type: 'CALENDAR_ERROR',
-          error: 'Failed to create calendar event'
+          contestId: '${contest?.contestId}',
+          error: ${JSON.stringify(error.message)}
         }, '*');
         window.close();
       </script>

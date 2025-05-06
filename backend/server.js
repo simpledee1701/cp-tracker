@@ -6,6 +6,7 @@ const codechefRoutes = require('./routes/codechefRoutes');
 const codeforcesRoutes = require('./routes/codeforcesRoutes');
 const userRoutes = require('./routes/userRoutes');
 const contestRoutes = require('./routes/contestRoutes');
+const calenderRoutes = require('./routes/calendarRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -25,6 +26,8 @@ app.use('/api/codechef', codechefRoutes);
 app.use('/api/codeforces',codeforcesRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/contests',contestRoutes);
+app.use('/api/calendar',calenderRoutes);
+
 
 
 app.use((err, req, res, next) => {

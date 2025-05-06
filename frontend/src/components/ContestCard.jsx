@@ -1,5 +1,6 @@
 import { format, formatDistanceToNow } from 'date-fns';
 import { motion } from 'framer-motion';
+import GoogleCalendarButton from './GoogleCalendarButton';
 
 const platformColors = {
   leetcode: 'bg-orange-500/20 text-orange-300',
@@ -60,6 +61,7 @@ const ContestCard = ({ contest }) => {
             
           </div>
         </div>
+        <GoogleCalendarButton contest={contest} />
         <div className="mt-4 flex justify-end">
           <motion.a 
             href={contest.url} 
