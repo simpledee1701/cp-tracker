@@ -9,16 +9,23 @@ class userService {
         ...profileData,
         updated_at: new Date()
       })
-      .select('*'); // You can specify the columns you need, but '*' works fine for now
-  
+      .select('*');
     if (error) {
-      throw new Error(error.message); // If there's an error, throw it with a message
+      throw new Error(error.message);
     }
-  
     return data;
   }
-  
 
+  static async getEmail(id) {
+    const { data, error } = await supabase
+      .from('auth.users')
+      .select('email')
+      .eq('id', id)
+  
+    if (error) throw new Error(error.message);
+    return data?.email;
+  }
+  
   static async getProfile(id) {
     const { data, error } = await supabase
       .from('profiles')

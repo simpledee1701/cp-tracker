@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Mail, Lock, User, CheckCircle, X } from 'lucide-react';
-import axios from 'axios';
+import { Eye, EyeOff, Mail, Lock, CheckCircle, X } from 'lucide-react';
+import { FcGoogle } from 'react-icons/fc';
 import { UserAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -37,8 +37,8 @@ export default function SignUp() {
   const [success, setSuccess] = useState('');
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [passwordFeedback, setPasswordFeedback] = useState([]);
-  const {session, signUpNewUser} = UserAuth()
-  const navigate = useNavigate() 
+  const { signUpNewUser, signInWithGoogle } = UserAuth();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -119,22 +119,30 @@ export default function SignUp() {
     }
   
     try {
-      const result = await signUpNewUser(formData.email, formData.password);
+      await signUpNewUser(formData.email, formData.password);
       setSuccess('Account created successfully! Redirecting...');
       setTimeout(() => {
         navigate('/profileform');
       }, 1500);
     } catch (err) {
-      console.error('Signup error:', err);
-      setError(
-        err.response?.data?.error ||
-        'Failed to create account. Please try again.'
-      );
+      setError(err.message || 'Failed to create account. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
-  
+
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const { error } = await signInWithGoogle();
+      if (error) throw error;
+    } catch (err) {
+      setError(err.message || 'Failed to sign in with Google');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -195,6 +203,31 @@ export default function SignUp() {
                 {success}
               </motion.div>
             )}
+
+            {/* Google Sign In Button */}
+            <motion.div variants={itemVariants}>
+              <button
+                type="button"
+                onClick={handleGoogleSignIn}
+                disabled={isLoading}
+                className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none transition duration-200"
+              >
+                <FcGoogle className="h-5 w-5" />
+                Continue with Google
+              </button>
+            </motion.div>
+
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                  Or continue with email
+                </span>
+              </div>
+            </div>
+
             <motion.form className="space-y-6" onSubmit={handleSubmit} variants={containerVariants}>
               <motion.div variants={itemVariants}>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">

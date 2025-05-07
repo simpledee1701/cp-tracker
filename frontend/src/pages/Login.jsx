@@ -1,10 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, LogIn } from 'lucide-react';
+import { FcGoogle } from 'react-icons/fc';
 import { UserAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
-import { useContext } from 'react';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -28,14 +27,15 @@ export default function Login() {
   const [message, setMessage] = useState('');
   const [success, setSuccess] = useState('');
 
-  const {session, signInUser} = UserAuth()
-  const navigate = useNavigate() 
+  const { session, signInUser, signInWithGoogle } = UserAuth();
+  const navigate = useNavigate();
+
   useEffect(() => {
     if (session?.user) {
-      navigate('/profile'); // Redirect if user is already signed in
+      navigate('/profile');
     }
   }, [session, navigate]);
-  
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -58,7 +58,20 @@ export default function Login() {
       setIsLoading(false);
     }
   };
-  
+
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const { error } = await signInWithGoogle();
+      if (error) throw error;
+    } catch (err) {
+      setError(err.message || 'Failed to sign in with Google');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -92,9 +105,35 @@ export default function Login() {
               </motion.div>
             )}
 
+            {/* Google Sign In Button */}
+            <motion.div variants={itemVariants}>
+              <button
+                type="button"
+                onClick={handleGoogleSignIn}
+                disabled={isLoading}
+                className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none transition duration-200"
+              >
+                <FcGoogle className="h-5 w-5" />
+                Continue with Google
+              </button>
+            </motion.div>
+
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                  Or continue with email
+                </span>
+              </div>
+            </div>
+
             <motion.form className="space-y-6" onSubmit={handleLogin} variants={containerVariants}>
               <motion.div variants={itemVariants}>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email address</label>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Email address
+                </label>
                 <div className="mt-1 relative rounded-md shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Mail className="h-5 w-5 text-gray-400" />
@@ -112,7 +151,9 @@ export default function Login() {
               </motion.div>
 
               <motion.div variants={itemVariants}>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Password
+                </label>
                 <div className="mt-1 relative rounded-md shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Lock className="h-5 w-5 text-gray-400" />
@@ -127,7 +168,11 @@ export default function Login() {
                     placeholder="••••••••"
                   />
                   <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-gray-400 hover:text-gray-500 focus:outline-none">
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="text-gray-400 hover:text-gray-500 focus:outline-none"
+                    >
                       {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                     </button>
                   </div>
@@ -136,11 +181,22 @@ export default function Login() {
 
               <motion.div className="flex items-center justify-between" variants={itemVariants}>
                 <div className="flex items-center">
-                  <input id="remember-me" type="checkbox" className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded" />
-                  <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">Remember me</label>
+                  <input
+                    id="remember-me"
+                    type="checkbox"
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
+                  />
+                  <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                    Remember me
+                  </label>
                 </div>
                 <div className="text-sm">
-                  <a href="#" className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">Forgot your password?</a>
+                  <a
+                    href="#"
+                    className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+                  >
+                    Forgot your password?
+                  </a>
                 </div>
               </motion.div>
 
@@ -151,9 +207,25 @@ export default function Login() {
                   className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                 >
                   {isLoading ? (
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                      ></path>
                     </svg>
                   ) : (
                     <LogIn className="h-4 w-4 mr-2" />

@@ -29,3 +29,17 @@ exports.getProfile = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+exports.getEmail = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (req.user.id !== id) {
+      return res.status(403).json({ error: 'Unauthorized to access this email' });
+    }
+
+    const email = await userService.getEmail(id);
+    res.json(email);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
