@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CalendarIcon } from '@heroicons/react/24/outline'; // Optional, if you're using Heroicons
-
+import { CalendarIcon } from '@heroicons/react/24/outline';
 
 const ContestCalendar = ({ contests }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -13,47 +12,67 @@ const ContestCalendar = ({ contests }) => {
     contests.forEach(contest => {
       const date = new Date(contest.startTime);
       const day = date.getDate();
-      events[day] = events[day] || [];
-      events[day].push(contest);
+      const month = date.getMonth();
+      const year = date.getFullYear();
+      const key = `${year}-${month}-${day}`;
+      if (!events[key]) events[key] = [];
+      events[key].push(contest);
     });
     return events;
   }, [contests]);
 
-  // Generate calendar days for current month
-  const daysInMonth = new Date(
-    currentMonth.getFullYear(),
-    currentMonth.getMonth() + 1,
-    0
-  ).getDate();
+  const year = currentMonth.getFullYear();
+  const month = currentMonth.getMonth();
 
-  const calendarDays = Array.from({ length: daysInMonth }, (_, i) => {
-    const day = i + 1;
-    const hasEvents = calendarEvents[day];
-    const isToday = day === new Date().getDate() && 
-                   currentMonth.getMonth() === new Date().getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const startDayOfWeek = new Date(year, month, 1).getDay();
 
-    return (
-      <motion.div
-        key={day}
-        className={`relative aspect-square p-1 text-sm cursor-pointer
-          ${isToday ? 'bg-purple-500/20' : ''}
-          ${hasEvents ? 'hover:bg-purple-500/20' : 'opacity-50'}`}
-        whileHover={{ scale: 1.05 }}
-        onClick={() => hasEvents && setSelectedDate(day)}
-      >
-        <div className={`text-center ${hasEvents ? 'text-white' : 'text-gray-400'}`}>
-          {day}
-        </div>
-        {hasEvents && (
-          <div className="absolute bottom-1 left-0 right-0 flex justify-center gap-1">
-            {calendarEvents[day].map((_, i) => (
-              <div key={i} className="w-1 h-1 bg-purple-500 rounded-full" />
-            ))}
+  const today = new Date();
+
+  const calendarDays = Array.from(
+    { length: startDayOfWeek + daysInMonth },
+    (_, i) => {
+      if (i < startDayOfWeek) {
+        return <div key={`empty-${i}`} />;
+      }
+
+      const day = i - startDayOfWeek + 1;
+      const key = `${year}-${month}-${day}`;
+      const hasEvents = calendarEvents[key];
+      const isToday =
+        day === today.getDate() &&
+        month === today.getMonth() &&
+        year === today.getFullYear();
+
+      return (
+        <motion.div
+          key={day}
+          className={`relative aspect-square p-1 text-sm cursor-pointer rounded-lg
+            ${isToday ? 'bg-purple-500/20' : ''}
+            ${hasEvents ? 'hover:bg-purple-500/20' : 'opacity-50'}`}
+          whileHover={{ scale: 1.05 }}
+          onClick={() => hasEvents && setSelectedDate({ day, key })}
+        >
+          <div className={`text-center ${hasEvents ? 'text-white' : 'text-gray-400'}`}>
+            {day}
           </div>
-        )}
-      </motion.div>
+          {hasEvents && (
+            <div className="absolute bottom-1 left-0 right-0 flex justify-center gap-1">
+              {calendarEvents[key].map((_, i) => (
+                <div key={i} className="w-1 h-1 bg-purple-500 rounded-full" />
+              ))}
+            </div>
+          )}
+        </motion.div>
+      );
+    }
+  );
+
+  const handleMonthChange = (direction) => {
+    setCurrentMonth(prev =>
+      new Date(prev.getFullYear(), prev.getMonth() + direction, 1)
     );
-  });
+  };
 
   return (
     <motion.div className="bg-black/30 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-xl">
@@ -64,18 +83,22 @@ const ContestCalendar = ({ contests }) => {
         </h2>
         <div className="flex gap-2">
           <button
-            onClick={() => setCurrentMonth(prev => new Date(prev.setMonth(prev.getMonth() - 1)))}
-            className="p-1 hover:bg-white/10 rounded"
+            onClick={() => handleMonthChange(-1)}
+            className="p-1 hover:bg-white/10 rounded text-white"
           >
-            
+            ◀
           </button>
           <button
-            onClick={() => setCurrentMonth(prev => new Date(prev.setMonth(prev.getMonth() + 1)))}
-            className="p-1 hover:bg-white/10 rounded"
+            onClick={() => handleMonthChange(1)}
+            className="p-1 hover:bg-white/10 rounded text-white"
           >
-            
+            ▶
           </button>
         </div>
+      </div>
+
+      <div className="text-center text-lg font-medium text-white mb-2">
+        {currentMonth.toLocaleString('default', { month: 'long' })} {year}
       </div>
 
       <div className="grid grid-cols-7 gap-1">
@@ -87,33 +110,33 @@ const ContestCalendar = ({ contests }) => {
         {calendarDays}
       </div>
 
-      {/* Date Detail Modal */}
       <AnimatePresence>
         {selectedDate && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center"
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
             onClick={() => setSelectedDate(null)}
           >
             <motion.div
-              className="bg-gray-800 p-6 rounded-xl w-3/4 "
-              onClick={e => e.stopPropagation()}
+              className="bg-gray-800 p-6 rounded-xl w-3/4 max-w-md"
+              onClick={(e) => e.stopPropagation()}
               initial={{ y: 20 }}
               animate={{ y: 0 }}
             >
-              <h3 className="text-xl font-semibold mb-4">
-                Contests on {selectedDate} {currentMonth.toLocaleString('default', { month: 'long' })}
+              <h3 className="text-xl font-semibold mb-4 text-white">
+                Contests on {selectedDate.day}{' '}
+                {currentMonth.toLocaleString('default', { month: 'long' })}
               </h3>
               <div className="space-y-2">
-                {calendarEvents[selectedDate].map(contest => (
+                {calendarEvents[selectedDate.key].map(contest => (
                   <div key={contest.id} className="p-3 bg-gray-700/50 rounded-lg">
-                    <div className="font-medium">{contest.title}</div>
+                    <div className="font-medium text-white">{contest.title}</div>
                     <div className="text-sm text-gray-400">
                       {new Date(contest.startTime).toLocaleTimeString([], {
                         hour: '2-digit',
-                        minute: '2-digit'
+                        minute: '2-digit',
                       })}
                     </div>
                   </div>
@@ -126,5 +149,4 @@ const ContestCalendar = ({ contests }) => {
     </motion.div>
   );
 };
-  
-  export default ContestCalendar;
+export default ContestCalendar;

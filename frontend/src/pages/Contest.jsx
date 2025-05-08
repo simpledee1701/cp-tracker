@@ -23,7 +23,7 @@ const Contest = () => {
       try {
         const response = await fetch('/api/contests/upcoming');
         const data = await response.json();
-        
+
         if (data.success) {
           const transformedContests = data.contests.map(contest => ({
             id: `${contest.name}-${contest.startTime}`,
@@ -33,7 +33,7 @@ const Contest = () => {
             endTime: contest.endTime,
             duration: parseDuration(contest.duration),
             url: contest.url,
-            
+
           }));
           setContests(transformedContests);
         }
@@ -70,7 +70,7 @@ const Contest = () => {
               </h1>
               <p className="text-gray-400 mt-2">Track upcoming competitions across platforms</p>
             </div>
-            
+
             <div className="w-full md:w-64 relative">
               <input
                 type="text"
@@ -128,13 +128,13 @@ const Contest = () => {
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-black/30 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-xl space-y-4"
+              className="mt-14 bg-black/30 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-xl space-y-4 py-6"
             >
               <h2 className="text-xl font-semibold flex items-center gap-2">
                 <ChartPieIcon className="w-6 h-6 text-purple-400" />
                 Contest Stats
               </h2>
-              
+
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400">Total Contests</span>
@@ -149,8 +149,8 @@ const Contest = () => {
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400">Ongoing</span>
                   <span className="text-yellow-400">
-                    {contests.filter(c => 
-                      new Date() > new Date(c.startTime) && 
+                    {contests.filter(c =>
+                      new Date() > new Date(c.startTime) &&
                       new Date() < new Date(c.endTime)
                     ).length}
                   </span>
@@ -160,49 +160,8 @@ const Contest = () => {
 
             {/* Calendar Widget */}
             <ContestCalendar contests={filteredContests} />
-
-            {/* Quick Links */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="bg-black/30 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-xl"
-            >
-              <h2 className="text-xl font-semibold flex items-center gap-2 mb-4">
-                <FireIcon className="w-6 h-6 text-purple-400" />
-                Hot Contests
-              </h2>
-              
-              <div className="space-y-3">
-                {contests
-                  .filter(c => c.participants > 5000)
-                  .slice(0, 3)
-                  .map(contest => (
-                    <div
-                      key={contest.id}
-                      className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
-                    >
-                      <span className="truncate">{contest.title}</span>
-                      <span className="text-purple-400 text-sm whitespace-nowrap">
-                        <div className="mt-4 flex justify-end">
-                          <motion.a
-                            href={contest.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-purple-300 hover:text-white text-sm font-medium flex items-center"
-                            whileHover={{ x: 3 }}
-                          >
-                            Visit
-                            <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                            </svg>
-                          </motion.a>
-                        </div>
-                      </span>
-                    </div>
-                  ))}
-              </div>
-            </motion.div>
           </div>
+
         </div>
       </main>
     </div>
