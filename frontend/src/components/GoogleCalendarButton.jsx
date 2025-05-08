@@ -29,9 +29,9 @@ export default function GoogleCalendarButton({ contest }) {
           'Authorization': `Bearer ${session.access_token}`
         }
       });
-      
+
       if (!response.ok) throw new Error('Failed to check status');
-      
+
       const data = await response.json();
       setIsAdded(data.isAdded);
       setGoogleEventId(data.googleEventId || null);
@@ -46,6 +46,7 @@ export default function GoogleCalendarButton({ contest }) {
   }, [contestId, session?.access_token]);
 
   const handleAddToCalendar = async () => {
+
     if (isAdded) return;
 
     if (!profileData?.email) {
@@ -83,7 +84,7 @@ export default function GoogleCalendarButton({ contest }) {
       });
 
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.error || 'Failed to add to calendar');
       }
@@ -102,20 +103,11 @@ export default function GoogleCalendarButton({ contest }) {
             setLoading(false);
           }
         }, 500);
-      } else if (data.alreadyAdded) {
-        setIsAdded(true);
-        setStatus({ type: 'success', message: 'Already added to calendar' });
-        setLoading(false);
-      } else if (data.eventId) {
-        // Successfully added event, set status and redirect to Google Calendar
+
         setIsAdded(true);
         setGoogleEventId(data.eventId);
         setStatus({ type: 'success', message: 'Added to calendar' });
         setLoading(false);
-        
-        setTimeout(() => {
-          window.open('https://calendar.google.com', '_blank');
-        }, 1000);
       }
     } catch (error) {
       setStatus({ type: 'error', message: error.message });
@@ -162,9 +154,8 @@ export default function GoogleCalendarButton({ contest }) {
         <button
           onClick={handleRemoveFromCalendar}
           disabled={removeLoading}
-          className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-md transition-colors bg-red-600 hover:bg-red-700 text-white ${
-            removeLoading ? 'opacity-50' : ''
-          }`}
+          className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-md transition-colors bg-red-600 hover:bg-red-700 text-white ${removeLoading ? 'opacity-50' : ''
+            }`}
         >
           {removeLoading ? (
             <ArrowPathIcon className="w-4 h-4 animate-spin" />
@@ -177,13 +168,11 @@ export default function GoogleCalendarButton({ contest }) {
         <button
           onClick={handleAddToCalendar}
           disabled={loading}
-          className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-md transition-colors ${
-            loading ? 'opacity-50' : ''
-          } ${
-            isAdded 
+          className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-md transition-colors ${loading ? 'opacity-50' : ''
+            } ${isAdded
               ? 'bg-green-600 text-white cursor-default'
               : 'bg-blue-600 hover:bg-blue-700 text-white'
-          }`}
+            }`}
         >
           {loading ? (
             <ArrowPathIcon className="w-4 h-4 animate-spin" />
@@ -209,17 +198,17 @@ function validateContestTimes(contest) {
   if (!contest.startTime || !contest.endTime) {
     return 'Invalid contest times';
   }
-  
+
   const start = new Date(contest.startTime);
   const end = new Date(contest.endTime);
-  
+
   if (isNaN(start) || isNaN(end)) {
     return 'Invalid date format';
   }
-  
+
   if (start >= end) {
     return 'End time must be after start time';
   }
-  
+
   return null;
 }
