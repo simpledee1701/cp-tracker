@@ -17,8 +17,6 @@ app.use(cors({
   exposedHeaders: ['Authorization']
 }));
 
-app.use(cors());
-app.use(cors({ origin: '*' }));
 app.use(express.json());
 
 app.use('/api/leetcode', leetcodeRoutes);
@@ -27,8 +25,6 @@ app.use('/api/codeforces',codeforcesRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/contests',contestRoutes);
 app.use('/api/calendar',calenderRoutes);
-
-
 
 app.use((err, req, res, next) => {
   console.error('Error:', err);
