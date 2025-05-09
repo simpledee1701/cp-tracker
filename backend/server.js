@@ -7,6 +7,7 @@ const codeforcesRoutes = require('./routes/codeforcesRoutes');
 const userRoutes = require('./routes/userRoutes');
 const contestRoutes = require('./routes/contestRoutes');
 const calenderRoutes = require('./routes/calendarRoutes');
+const { scheduleCleanup } = require('./controllers/calendarController');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,6 +19,8 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
+scheduleCleanup();
 
 app.use('/api/leetcode', leetcodeRoutes);
 app.use('/api/codechef', codechefRoutes);

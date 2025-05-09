@@ -22,14 +22,6 @@ router.post('/remove', authMiddleware, removeFromCalendar);
 // Handle Google OAuth callback
 router.get('/auth/google/callback', handleGoogleCallback);
 
-// Cleanup past contests (admin-only route)
-router.post('/cleanup', authMiddleware, (req, res, next) => {
-  // Add admin check if needed
-  if (!req.user.isAdmin) {
-    return res.status(403).json({ error: 'Unauthorized' });
-  }
-  next();
-}, cleanupPastContests);
 
 // Refresh tokens endpoint
 router.post('/refresh-tokens', authMiddleware, async (req, res) => {

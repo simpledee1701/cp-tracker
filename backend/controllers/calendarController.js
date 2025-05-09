@@ -25,10 +25,10 @@ exports.addToCalendar = async (req, res) => {
     const { contest } = req.body;
     const userId = req.user.id;
 
-    // Check if contest already exists
+    // Check if contest already exists (optional - you might want to keep this check)
     const { data: existing, error: checkError } = await supabase
       .from('google_calendar')
-      .select('id, google_event_id, google_tokens')
+      .select('id, google_event_id')
       .eq('user_id', userId)
       .eq('contest_id', contest.contestId)
       .maybeSingle();
@@ -43,63 +43,7 @@ exports.addToCalendar = async (req, res) => {
       });
     }
 
-    // Check if user has existing tokens
-    const tokens = await getUserTokens(userId);
-
-    if (tokens) {
-      // User has tokens, try to add directly
-      try {
-        oauth2Client.setCredentials(tokens);
-        const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
-        
-        const event = await calendar.events.insert({
-          calendarId: 'primary',
-          requestBody: {
-            summary: contest.title,
-            description: `Platform: ${contest.platform}\nDuration: ${contest.duration} minutes\nURL: ${contest.url}`,
-            start: { 
-              dateTime: contest.startTime,
-              timeZone: 'UTC' 
-            },
-            end: { 
-              dateTime: contest.endTime,
-              timeZone: 'UTC' 
-            },
-            reminders: {
-              useDefault: false,
-              overrides: [{ method: 'email', minutes: 30 }]
-            }
-          }
-        });
-
-        // Store in database
-        const { error } = await supabase
-          .from('google_calendar')
-          .insert({
-            user_id: userId,
-            contest_id: contest.contestId,
-            google_event_id: event.data.id,
-            contest_title: contest.title,
-            contest_start_time: contest.startTime,
-            contest_end_time: contest.endTime,
-            contest_platform: contest.platform,
-            contest_url: contest.url,
-            google_tokens: tokens
-          });
-
-        if (error) throw error;
-
-        return res.json({ 
-          success: true, 
-          eventId: event.data.id 
-        });
-      } catch (googleError) {
-        console.log('Google API error, will re-authenticate:', googleError.message);
-        // Continue to generate auth URL if token is expired
-      }
-    }
-
-    // Generate auth URL for new additions or re-authentication
+    // Always generate auth URL regardless of existing tokens
     const authUrl = oauth2Client.generateAuthUrl({
       access_type: 'offline',
       scope: [
@@ -297,12 +241,30 @@ exports.checkContestAdded = async (req, res) => {
   }
 };
 
-// Cleanup past contests (to be run periodically)
+// Add this to your existing controller
+exports.scheduleCleanup = () => {
+  // Run cleanup every 24 hours
+  setInterval(async () => {
+    console.log('Running automatic cleanup of past contests...');
+    try {
+      const result = await this.cleanupPastContests();
+      console.log(`Cleanup completed. Removed ${result.deletedCount} past contests.`);
+    } catch (error) {
+      console.error('Automatic cleanup failed:', error);
+    }
+  }, 24 * 60 * 60 * 1000); // 24 hours in milliseconds
+
+  // Run immediately on server start
+  this.cleanupPastContests().then(result => {
+    console.log(`Initial cleanup removed ${result.deletedCount} past contests.`);
+  });
+};
+
+// Modified cleanup function (remove admin check)
 exports.cleanupPastContests = async () => {
   try {
     const now = new Date().toISOString();
     
-    // Find all past contests
     const { data: pastContests, error: findError } = await supabase
       .from('google_calendar')
       .select('id, user_id, google_event_id, contest_end_time')
@@ -311,24 +273,19 @@ exports.cleanupPastContests = async () => {
     if (findError) throw findError;
 
     if (!pastContests || pastContests.length === 0) {
-      console.log('No past contests to clean up');
       return { success: true, deletedCount: 0 };
     }
 
     let deletedCount = 0;
     const errors = [];
 
-    // Process each past contest
     for (const contest of pastContests) {
       try {
-        // Try to delete from Google Calendar if we have the event ID
         if (contest.google_event_id) {
           const tokens = await getUserTokens(contest.user_id);
-          
           if (tokens) {
             oauth2Client.setCredentials(tokens);
             const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
-            
             await calendar.events.delete({
               calendarId: 'primary',
               eventId: contest.google_event_id
@@ -336,37 +293,20 @@ exports.cleanupPastContests = async () => {
           }
         }
 
-        // Delete from our database
         const { error: deleteError } = await supabase
           .from('google_calendar')
           .delete()
           .eq('id', contest.id);
 
-        if (!deleteError) {
-          deletedCount++;
-        }
+        if (!deleteError) deletedCount++;
       } catch (error) {
-        errors.push({
-          contestId: contest.id,
-          error: error.message
-        });
-        console.error(`Error cleaning up contest ${contest.id}:`, error);
+        errors.push({ contestId: contest.id, error: error.message });
       }
     }
 
-    console.log(`Successfully cleaned up ${deletedCount} past contests`);
-    if (errors.length > 0) {
-      console.log(`Errors occurred with ${errors.length} contests`);
-    }
-
-    return { 
-      success: true, 
-      deletedCount,
-      errorCount: errors.length,
-      errors
-    };
+    return { success: true, deletedCount, errorCount: errors.length };
   } catch (error) {
-    console.error('Error in cleanupPastContests:', error);
+    console.error('Cleanup error:', error);
     return { success: false, error: error.message };
   }
 };
