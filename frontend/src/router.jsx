@@ -7,7 +7,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import LeetcodePage from "./pages/LeetcodePage";
 import CodechefPage from "./pages/CodechefPage";
 import CodeforcesPage from "./pages/CodeforcesPage";
-import Home from "./pages/Home";
+import Dashboard from "./pages/Dashboard";
 import Contest from "./pages/Contest";
 import ProfileForm from "./pages/ProfileForm";
 
@@ -23,14 +23,16 @@ export const router = createBrowserRouter([
             </PrivateRoute>
         )
     },
-    { 
-        path: "/home", 
-        element: (
-            <PrivateRoute>
-                <Home />
-            </PrivateRoute>
-        )
+    {
+        path: "/dashboard",
+            element:(
+                <PrivateRoute>
+                    <Dashboard />
+                </PrivateRoute>
+            )
+        
     },
+
     { 
         path: "/contest", 
         element: (
