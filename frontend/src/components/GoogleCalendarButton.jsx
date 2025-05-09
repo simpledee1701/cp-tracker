@@ -1,7 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useUserProfile } from '../context/UserProfileContext';
-import { CalendarDaysIcon, ArrowPathIcon, CheckIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { UserAuth } from '../context/AuthContext';
+import {
+  CalendarDaysIcon,
+  ArrowPathIcon,
+  CheckIcon,
+  TrashIcon,
+  ExclamationTriangleIcon
+} from '@heroicons/react/24/outline';
 
 const getContestId = (contest) => {
   return `${contest.title}-${contest.startTime}-${contest.platform}`;
@@ -43,10 +49,46 @@ export default function GoogleCalendarButton({ contest }) {
 
   useEffect(() => {
     checkAddedStatus();
+
+    const handleMessage = (event) => {
+      if (event.data.type === 'CALENDAR_SUCCESS' && event.data.contestId === contestId) {
+        setIsAdded(true);
+        setGoogleEventId(event.data.googleEventId);
+        setStatus({ type: 'success', message: 'Successfully added to Google Calendar' });
+        setLoading(false);
+      } else if (event.data.type === 'CALENDAR_ERROR' && event.data.contestId === contestId) {
+        setStatus({ 
+          type: 'error', 
+          message: event.data.error || 'Failed to add to calendar' 
+        });
+        setLoading(false);
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
   }, [contestId, session?.access_token]);
 
-  const handleAddToCalendar = async () => {
+  const validateContest = () => {
+    if (!contest.startTime || !contest.endTime) {
+      return 'Invalid contest times';
+    }
 
+    const start = new Date(contest.startTime);
+    const end = new Date(contest.endTime);
+
+    if (isNaN(start) || isNaN(end)) {
+      return 'Invalid date format';
+    }
+
+    if (start >= end) {
+      return 'End time must be after start time';
+    }
+
+    return null;
+  };
+
+  const handleAddToCalendar = async () => {
     if (isAdded) return;
 
     if (!profileData?.email) {
@@ -54,7 +96,7 @@ export default function GoogleCalendarButton({ contest }) {
       return;
     }
 
-    const validationError = validateContestTimes(contest);
+    const validationError = validateContest();
     if (validationError) {
       setStatus({ type: 'error', message: validationError });
       return;
@@ -90,27 +132,30 @@ export default function GoogleCalendarButton({ contest }) {
       }
 
       if (data.authUrl) {
-        const authWindow = window.open(
+        // Open auth window centered on screen
+        const width = 500;
+        const height = 600;
+        const left = (window.innerWidth - width) / 2;
+        const top = (window.innerHeight - height) / 2;
+        
+        window.open(
           data.authUrl,
           'GoogleAuth',
-          'width=500,height=600'
+          `width=${width},height=${height},left=${left},top=${top}`
         );
-
-        const checkAuth = setInterval(() => {
-          if (authWindow?.closed) {
-            clearInterval(checkAuth);
-            checkAddedStatus();
-            setLoading(false);
-          }
-        }, 500);
-
+      } else if (data.eventId) {
+        // Direct addition was successful
         setIsAdded(true);
         setGoogleEventId(data.eventId);
         setStatus({ type: 'success', message: 'Added to calendar' });
-        setLoading(false);
       }
     } catch (error) {
-      setStatus({ type: 'error', message: error.message });
+      setStatus({ 
+        type: 'error', 
+        message: error.message,
+        showRetry: true 
+      });
+    } finally {
       setLoading(false);
     }
   };
@@ -142,73 +187,74 @@ export default function GoogleCalendarButton({ contest }) {
       setGoogleEventId(null);
       setStatus({ type: 'success', message: 'Removed from calendar' });
     } catch (error) {
-      setStatus({ type: 'error', message: error.message });
+      setStatus({ 
+        type: 'error', 
+        message: error.message,
+        showRetry: true 
+      });
     } finally {
       setRemoveLoading(false);
     }
   };
 
   return (
-    <div className="mt-2 flex gap-2">
-      {isAdded ? (
-        <button
-          onClick={handleRemoveFromCalendar}
-          disabled={removeLoading}
-          className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-md transition-colors bg-red-600 hover:bg-red-700 text-white ${removeLoading ? 'opacity-50' : ''
-            }`}
-        >
-          {removeLoading ? (
-            <ArrowPathIcon className="w-4 h-4 animate-spin" />
-          ) : (
-            <TrashIcon className="w-4 h-4" />
-          )}
-          {removeLoading ? 'Removing...' : 'Remove'}
-        </button>
-      ) : (
-        <button
-          onClick={handleAddToCalendar}
-          disabled={loading}
-          className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-md transition-colors ${loading ? 'opacity-50' : ''
-            } ${isAdded
-              ? 'bg-green-600 text-white cursor-default'
-              : 'bg-blue-600 hover:bg-blue-700 text-white'
-            }`}
-        >
-          {loading ? (
-            <ArrowPathIcon className="w-4 h-4 animate-spin" />
-          ) : isAdded ? (
-            <CheckIcon className="w-4 h-4" />
-          ) : (
-            <CalendarDaysIcon className="w-4 h-4" />
-          )}
-          {loading ? 'Adding...' : isAdded ? 'Added' : 'Add to Calendar'}
-        </button>
-      )}
+    <div className="flex flex-col gap-2">
+      <div className="flex gap-2">
+        {isAdded ? (
+          <button
+            onClick={handleRemoveFromCalendar}
+            disabled={removeLoading}
+            className={`mt-2 flex items-center gap-2 px-3 py-1.5 text-sm rounded-md transition-colors ${
+              removeLoading ? 'bg-red-700' : 'bg-red-600 hover:bg-red-700'
+            } text-white`}
+            aria-label="Remove from Google Calendar"
+          >
+            {removeLoading ? (
+              <ArrowPathIcon className="w-4 h-4 animate-spin" />
+            ) : (
+              <TrashIcon className="w-4 h-4" />
+            )}
+            {removeLoading ? 'Removing...' : 'Remove'}
+          </button>
+        ) : (
+          <button
+            onClick={handleAddToCalendar}
+            disabled={loading}
+            className={`mt-2 flex items-center gap-2 px-3 py-1.5 text-sm rounded-md transition-colors ${
+              loading ? 'bg-blue-700' : 'bg-blue-600 hover:bg-blue-700'
+            } text-white`}
+            aria-label="Add to Google Calendar"
+          >
+            {loading ? (
+              <ArrowPathIcon className="w-4 h-4 animate-spin" />
+            ) : (
+              <CalendarDaysIcon className="w-4 h-4" />
+            )}
+            {loading ? 'Adding...' : 'Add to Calendar'}
+          </button>
+        )}
+      </div>
 
       {status && (
-        <div className={`mt-1 text-xs ${status.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
-          {status.message}
+        <div className={`flex items-start gap-1 text-sm ${
+          status.type === 'success' ? 'text-green-600' : 'text-red-600'
+        }`}>
+          {status.type === 'error' && (
+            <ExclamationTriangleIcon className="w-4 h-4 mt-0.5 flex-shrink-0" />
+          )}
+          <div>
+            {status.message}
+            {status.showRetry && (
+              <button 
+                onClick={isAdded ? handleRemoveFromCalendar : handleAddToCalendar}
+                className="ml-2 underline hover:no-underline"
+              >
+                Try again
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>
   );
-}
-
-function validateContestTimes(contest) {
-  if (!contest.startTime || !contest.endTime) {
-    return 'Invalid contest times';
-  }
-
-  const start = new Date(contest.startTime);
-  const end = new Date(contest.endTime);
-
-  if (isNaN(start) || isNaN(end)) {
-    return 'Invalid date format';
-  }
-
-  if (start >= end) {
-    return 'End time must be after start time';
-  }
-
-  return null;
 }
