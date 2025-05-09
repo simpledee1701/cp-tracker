@@ -7,13 +7,14 @@ const LeetcodeStats = ({ username }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedTopics, setExpandedTopics] = useState(false);
+  const API_BASE = import.meta.env.VITE_BACKEND_URL;
 
   const fetchStats = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`/api/leetcode/stats/${username}/`);
+      const response = await fetch(`${API_BASE}/api/leetcode/stats/${username}/`);
 
       if (!response.ok) {
         if (response.status === 404) {

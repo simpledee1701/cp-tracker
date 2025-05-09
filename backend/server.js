@@ -1,48 +1,65 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+
+// Routes
 const leetcodeRoutes = require('./routes/leetcodeRoutes');
 const codechefRoutes = require('./routes/codechefRoutes');
 const codeforcesRoutes = require('./routes/codeforcesRoutes');
 const userRoutes = require('./routes/userRoutes');
 const contestRoutes = require('./routes/contestRoutes');
-const calenderRoutes = require('./routes/calendarRoutes');
+const calendarRoutes = require('./routes/calendarRoutes');
 const { scheduleCleanup } = require('./controllers/calendarController');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Security middleware (essential for both dev and prod)
+app.use(helmet());
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: process.env.NODE_ENV === 'production' 
+    ? process.env.FRONTEND_PROD_URL 
+    : 'http://localhost:5173',
   credentials: true,
   exposedHeaders: ['Authorization']
 }));
 
+// Body parser
 app.use(express.json());
 
+// Scheduled tasks
 scheduleCleanup();
 
+// Routes
 app.use('/api/leetcode', leetcodeRoutes);
 app.use('/api/codechef', codechefRoutes);
-app.use('/api/codeforces',codeforcesRoutes);
+app.use('/api/codeforces', codeforcesRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/contests',contestRoutes);
-app.use('/api/calendar',calenderRoutes);
+app.use('/api/contests', contestRoutes);
+app.use('/api/calendar', calendarRoutes);
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'healthy', 
+    environment: process.env.NODE_ENV || 'development' 
+  });
+});
+
+// Error handling (works for both environments)
 app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  const errorDetails = process.env.NODE_ENV === 'production' 
-    ? { message: err.message || 'Internal server error' }
-    : { message: err.message, stack: err.stack };
-    
+  console.error(err);
   res.status(err.status || 500).json({
     success: false,
-    error: errorDetails
+    error: process.env.NODE_ENV === 'production'
+      ? { message: 'Internal server error' }
+      : { message: err.message, stack: err.stack }
   });
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
 });
 
 module.exports = app;

@@ -22,6 +22,7 @@ export default function GoogleCalendarButton({ contest }) {
   const { profileData } = useUserProfile();
   const { session } = UserAuth();
   const contestId = getContestId(contest);
+  const API_BASE = import.meta.env.VITE_BACKEND_URL;
 
   const checkAddedStatus = async () => {
     if (!session?.access_token) {
@@ -30,7 +31,7 @@ export default function GoogleCalendarButton({ contest }) {
     }
 
     try {
-      const response = await fetch(`/api/calendar/check?contestId=${encodeURIComponent(contestId)}`, {
+      const response = await fetch(`${API_BASE}/api/calendar/check?contestId=${encodeURIComponent(contestId)}`, {
         headers: {
           'Authorization': `Bearer ${session.access_token}`
         }
@@ -106,7 +107,7 @@ export default function GoogleCalendarButton({ contest }) {
     setStatus(null);
 
     try {
-      const response = await fetch('/api/calendar/add', {
+      const response = await fetch(`${API_BASE}/api/calendar/add`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -167,7 +168,7 @@ export default function GoogleCalendarButton({ contest }) {
     setStatus(null);
 
     try {
-      const response = await fetch('/api/calendar/remove', {
+      const response = await fetch(`${API_BASE}/api/calendar/remove`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
