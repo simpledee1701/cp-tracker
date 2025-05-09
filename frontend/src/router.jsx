@@ -10,11 +10,13 @@ import CodeforcesPage from "./pages/CodeforcesPage";
 import Dashboard from "./pages/Dashboard";
 import Contest from "./pages/Contest";
 import ProfileForm from "./pages/ProfileForm";
+import PP from "./pages/PP";
 
 export const router = createBrowserRouter([
     { path: "/", element: <Start /> },
     { path: "/signup", element: <SignUp /> },
     { path: "/login", element: <Login /> },
+    { path: "/privacy", element: <PP /> },
     { 
         path: "/profile", 
         element: (
