@@ -131,7 +131,13 @@ const ContestCalendar = ({ contests }) => {
               </h3>
               <div className="space-y-2">
                 {calendarEvents[selectedDate.key].map(contest => (
-                  <div key={contest.id} className="p-3 bg-gray-700/50 rounded-lg">
+                  <a
+                    key={contest.id}
+                    href={contest.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block p-3 bg-gray-700/50 rounded-lg hover:bg-gray-600/60 transition-colors"
+                  >
                     <div className="font-medium text-white">{contest.title}</div>
                     <div className="text-sm text-gray-400">
                       {new Date(contest.startTime).toLocaleTimeString([], {
@@ -139,7 +145,7 @@ const ContestCalendar = ({ contests }) => {
                         minute: '2-digit',
                       })}
                     </div>
-                  </div>
+                  </a>
                 ))}
               </div>
             </motion.div>
@@ -149,4 +155,5 @@ const ContestCalendar = ({ contests }) => {
     </motion.div>
   );
 };
+
 export default ContestCalendar;
