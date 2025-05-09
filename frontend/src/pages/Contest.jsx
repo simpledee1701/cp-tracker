@@ -25,7 +25,6 @@ const Contest = () => {
       try {
         const response = await fetch('/api/contests/upcoming');
         const data = await response.json();
-
         if (data.success) {
           const transformedContests = data.contests.map(contest => ({
             id: `${contest.name}-${contest.startTime}`,
@@ -68,7 +67,7 @@ const Contest = () => {
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 5 }}
-            className="absolute top-full right-0 bg-gray-800/90 backdrop-blur-sm p-2 rounded-lg shadow-lg z-10 min-w-[120px]"
+            className="absolute bottom-full right-0 bg-gray-800/90 backdrop-blur-sm p-2 rounded-lg shadow-lg z-10 min-w-[120px]"
           >
             <div className="text-xs space-y-1">
               {Object.entries(platformCounts).map(([platform, count]) => (
