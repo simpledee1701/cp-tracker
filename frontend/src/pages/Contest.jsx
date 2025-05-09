@@ -91,35 +91,37 @@ const Contest = () => {
             <PlatformFilter selectedPlatform={selectedPlatform} setSelectedPlatform={setSelectedPlatform} />
 
             {/* Contest List */}
-            {loading ? (
-              <div className="space-y-4">
-                {[...Array(5)].map((_, i) => (
-                  <motion.div
-                    key={i}
-                    className="h-24 bg-white/5 rounded-xl backdrop-blur-sm animate-pulse"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: i * 0.1 }}
-                  />
-                ))}
-              </div>
-            ) : (
-              <AnimatePresence>
-                {filteredContests.length > 0 ? (
-                  filteredContests.map((contest) => (
-                    <ContestCard key={contest.id} contest={contest} />
-                  ))
-                ) : (
-                  <motion.div
-                    className="text-center py-12 bg-white/5 rounded-xl backdrop-blur-sm border border-white/10"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                  >
-                    <p className="text-gray-400">No contests found matching your criteria</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            )}
+            {/* Contest List with Scrollable Container */}
+<div className="bg-black/30 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-xl max-h-[39rem] overflow-y-auto space-y-4 scrollbar-thin">
+  {loading ? (
+    [...Array(3)].map((_, i) => (
+      <motion.div
+        key={i}
+        className="h-24 bg-white/5 rounded-xl backdrop-blur-sm animate-pulse"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: i * 0.1 }}
+      />
+    ))
+  ) : (
+    <AnimatePresence>
+      {filteredContests.length > 0 ? (
+        filteredContests.map((contest) => (
+          <ContestCard key={contest.id} contest={contest} />
+        ))
+      ) : (
+        <motion.div
+          className="text-center py-12 bg-white/5 rounded-xl backdrop-blur-sm border border-white/10"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <p className="text-gray-400">No contests found matching your criteria</p>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )}
+</div>
+
           </div>
 
           {/* Sidebar */}
