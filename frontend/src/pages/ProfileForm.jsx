@@ -29,6 +29,7 @@ export default function ProfileForm() {
   const [success, setSuccess] = useState('');
   const {session} = UserAuth();
   const navigate = useNavigate();
+  const API_BASE = import.meta.env.VITE_BACKEND_URL;
 
 
   useEffect(() => {
@@ -37,7 +38,7 @@ export default function ProfileForm() {
       
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/users/${session.user.id}`, {
+        const response = await fetch(`${API_BASE}/api/users/${session.user.id}`, {
           headers: {
             'Authorization': `Bearer ${session.access_token}`
           }
@@ -69,7 +70,7 @@ export default function ProfileForm() {
     setSuccess('');
 
     try {
-      const response = await fetch(`/api/users/${session.user.id}`, {
+      const response = await fetch(`${API_BASE}/api/users/${session.user.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

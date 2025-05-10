@@ -12,6 +12,7 @@ const CodechefPage = () => {
   const [error, setError] = useState(null);
   const [statsData, setStatsData] = useState(null);
   const [initialLoad, setInitialLoad] = useState(true);
+  const API_BASE = import.meta.env.VITE_BACKEND_URL;
 
   // Handle username from profile data
   useEffect(() => {
@@ -36,7 +37,7 @@ const CodechefPage = () => {
       try {
         setLoading(true);
         // Add cache-busting parameter
-        const res = await fetch(`/api/codechef/profile/${username}/?t=${Date.now()}`);
+        const res = await fetch(`${API_BASE}/api/codechef/profile/${username}/?t=${Date.now()}`);
         
         if (!res.ok) {
           if (res.status === 404) {

@@ -40,6 +40,7 @@ export default function Profile() {
   });
   const { session, signOut } = UserAuth();
   const navigate = useNavigate();
+  const API_BASE = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -47,7 +48,7 @@ export default function Profile() {
 
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/users/${session.user.id}`, {
+        const response = await fetch(`${API_BASE}/api/users/${session.user.id}`, {
           headers: {
             'Authorization': `Bearer ${session.access_token}`,
           },
@@ -66,7 +67,7 @@ export default function Profile() {
         } else {
           const authEmail = session.user.email;
           if (data.email !== authEmail) {
-            const updateResponse = await fetch(`/api/users/${session.user.id}`, {
+            const updateResponse = await fetch(`${API_BASE}/api/users/${session.user.id}`, {
               method: 'PUT',
               headers: {
                 'Content-Type': 'application/json',
@@ -134,7 +135,7 @@ export default function Profile() {
         throw new Error('Name cannot be empty');
       }
 
-      const response = await fetch(`/api/users/${session.user.id}`, {
+      const response = await fetch(`${API_BASE}/api/users/${session.user.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

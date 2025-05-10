@@ -7,6 +7,7 @@ export const UserProfileProvider = ({ children }) => {
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const API_BASE = import.meta.env.VITE_BACKEND_URL;
   
   useEffect(() => {
     const fetchProfile = async () => {
@@ -14,7 +15,7 @@ export const UserProfileProvider = ({ children }) => {
 
       try {
         setLoading(true);
-        const res = await fetch(`/api/users/${session.user.id}`, {
+        const res = await fetch(`${API_BASE}/api/users/${session.user.id}`, {
           headers: {
             'Authorization': `Bearer ${session.access_token}`,
           },

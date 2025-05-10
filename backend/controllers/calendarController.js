@@ -13,10 +13,10 @@ const getUserTokens = async (userId) => {
     .from('google_calendar')
     .select('google_tokens')
     .eq('user_id', userId)
-    .maybeSingle();
+    .limit(1);  // Just get the first one
 
   if (error) throw error;
-  return data?.google_tokens;
+  return data?.[0]?.google_tokens;
 };
 
 // Add to calendar - initial step
@@ -98,16 +98,7 @@ exports.handleGoogleCallback = async (req, res) => {
       }
     });
 
-    // Check if entry exists (upsert)
-    const { data: existing, error: checkError } = await supabase
-      .from('google_calendar')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('contest_id', contest.contestId)
-      .maybeSingle();
-
-    if (checkError) throw checkError;
-
+    // Upsert into database
     const dbData = {
       user_id: userId,
       contest_id: contest.contestId,
@@ -120,45 +111,112 @@ exports.handleGoogleCallback = async (req, res) => {
       google_tokens: tokens
     };
 
-    let dbError;
-    if (existing) {
-      // Update existing
-      const { error } = await supabase
-        .from('google_calendar')
-        .update(dbData)
-        .eq('id', existing.id);
-      dbError = error;
-    } else {
-      // Insert new
-      const { error } = await supabase
-        .from('google_calendar')
-        .insert(dbData);
-      dbError = error;
-    }
+    const { error } = await supabase
+      .from('google_calendar')
+      .upsert(dbData, { onConflict: ['user_id', 'contest_id'] });
 
-    if (dbError) throw dbError;
+    if (error) throw error;
 
     res.send(`
-      <script>
-        window.opener.postMessage({ 
-          type: 'CALENDAR_SUCCESS',
-          contestId: '${contest.contestId}',
-          googleEventId: '${event.data.id}'
-        }, '*');
-        window.close();
-      </script>
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Calendar Success</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 40px;
+            background-color: #f5f5f5;
+          }
+          .message {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 500px;
+            margin: 0 auto;
+          }
+          .close-btn {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-size: 16px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="message">
+          <h2>Added to Calendar</h2>
+          <p>The contest "${contest.title}" has been successfully added to your Google Calendar.</p>
+          <p>You can close this window now.</p>
+        </div>
+        
+        <script>
+          // Still send message to opener if needed
+          window.opener?.postMessage({ 
+            type: 'CALENDAR_SUCCESS',
+            contestId: '${contest.contestId}',
+            googleEventId: '${event.data.id}'
+          }, '*');
+        </script>
+      </body>
+      </html>
     `);
   } catch (error) {
     console.error('Google OAuth error:', error);
     res.send(`
-      <script>
-        window.opener.postMessage({
-          type: 'CALENDAR_ERROR',
-          contestId: '${contest?.contestId}',
-          error: ${JSON.stringify(error.message)}
-        }, '*');
-        window.close();
-      </script>
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Calendar Error</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 40px;
+            background-color: #f5f5f5;
+          }
+          .message {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 500px;
+            margin: 0 auto;
+            color: #d32f2f;
+          }
+          .close-btn {
+            background: #d32f2f;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-size: 16px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="message">
+          <h2>Error Adding to Calendar</h2>
+          <p>${error.message || 'An unknown error occurred'}</p>
+        </div>
+        
+        <script>
+          window.opener?.postMessage({
+            type: 'CALENDAR_ERROR',
+            contestId: '${contest?.contestId}',
+            error: ${JSON.stringify(error.message || 'Unknown error')}
+          }, '*');
+        </script>
+      </body>
+      </html>
     `);
   }
 };

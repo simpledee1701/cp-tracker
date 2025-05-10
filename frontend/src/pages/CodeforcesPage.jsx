@@ -15,6 +15,7 @@ const CodeforcesPage = () => {
   const [userData, setUserData] = useState(null);
   const [fetchError, setFetchError] = useState('');
   const [initialLoad, setInitialLoad] = useState(true);
+  const API_BASE = import.meta.env.VITE_BACKEND_URL;
 
   // Get username from profile data
   useEffect(() => {
@@ -42,7 +43,7 @@ const CodeforcesPage = () => {
         setFetchError('');
         
         // Add cache busting to prevent stale data
-        const response = await fetch(`/api/codeforces/profile/${username}?t=${Date.now()}`);
+        const response = await fetch(`${API_BASE}/api/codeforces/profile/${username}?t=${Date.now()}`);
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);

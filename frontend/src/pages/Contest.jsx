@@ -19,11 +19,12 @@ const Contest = () => {
     const timeValue = parseFloat(time);
     return unit.includes('hour') ? Math.round(timeValue * 60) : timeValue;
   };
+  const API_BASE = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
     const fetchContests = async () => {
       try {
-        const response = await fetch('/api/contests/upcoming');
+        const response = await fetch(`${API_BASE}/api/contests/upcoming`);
         const data = await response.json();
         if (data.success) {
           const transformedContests = data.contests.map(contest => ({

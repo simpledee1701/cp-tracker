@@ -172,9 +172,6 @@ export default function PP() {
                 <li>Export your data in a machine-readable format</li>
                 <li>Opt-out of non-essential communications</li>
               </ul>
-              <p className="text-gray-600 dark:text-gray-300">
-                To exercise these rights, please contact us at privacy@cpier.app.
-              </p>
             </div>
 
             {/* Changes to Policy */}
