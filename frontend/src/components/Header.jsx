@@ -1,11 +1,21 @@
 import { motion } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
+import { useUserProfile } from '../context/UserProfileContext'; // Import the UserProfile context
 
 const Headers = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const location = useLocation();
+  const { profileData } = useUserProfile(); // Access the profile data
+
+  // Get user's first initial or fallback to person emoji
+  const getUserInitial = () => {
+    if (!profileData || !profileData.name) {
+      return '👤'; // Person emoji fallback
+    }
+    return profileData.name.charAt(0).toUpperCase();
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -50,40 +60,117 @@ const Headers = () => {
             Dashboard
           </Link>
 
-          {/* Coding Profiles Dropdown */}
+          {/* Enhanced Coding Profiles Dropdown */}
           <div className="relative" ref={dropdownRef}>
             <span
               onMouseEnter={() => setIsDropdownOpen(true)}
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="hover:text-blue-400 font-medium transition-colors duration-300 cursor-pointer"
+              className={`hover:text-blue-400 font-medium transition-colors duration-300 cursor-pointer ${
+                isActive('/leetcode') || isActive('/codeforces') || isActive('/codechef') ? 'text-blue-400' : ''
+              }`}
             >
               Coding Profiles
             </span>
 
             {isDropdownOpen && (
-              <div className="absolute left-0 mt-2 w-44 bg-gray-800 text-white rounded-md shadow-lg z-50 border border-slate-700">
-                <Link
-                  to="/leetcode"
-                  className="block px-4 py-2 text-sm hover:bg-blue-600 hover:text-white"
-                  onClick={() => setIsDropdownOpen(false)}
-                >
-                  LeetCode
-                </Link>
-                <Link
-                  to="/codeforces"
-                  className="block px-4 py-2 text-sm hover:bg-blue-600 hover:text-white"
-                  onClick={() => setIsDropdownOpen(false)}
-                >
-                  Codeforces
-                </Link>
-                <Link
-                  to="/codechef"
-                  className="block px-4 py-2 text-sm hover:bg-blue-600 hover:text-white"
-                  onClick={() => setIsDropdownOpen(false)}
-                >
-                  CodeChef
-                </Link>
-              </div>
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2 }}
+                className="absolute left-0 mt-2 w-52 bg-gray-800 text-white rounded-md shadow-lg z-50 border border-slate-700 overflow-hidden"
+              >
+                {/* Display connected profiles if available */}
+                {profileData?.profiles ? (
+                  <>
+                    {profileData.profiles.leetcode && (
+                      <Link
+                        to="/leetcode"
+                        className="px-4 py-2 text-sm hover:bg-blue-600 hover:text-white flex items-center space-x-2"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                        <span>LeetCode</span>
+                      </Link>
+                    )}
+                    {!profileData.profiles.leetcode && (
+                      <Link
+                        to="/leetcode"
+                        className="px-4 py-2 text-sm hover:bg-blue-600 hover:text-white flex items-center space-x-2"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
+                        <span>LeetCode</span>
+                      </Link>
+                    )}
+                    
+                    {profileData.profiles.codeforces && (
+                      <Link
+                        to="/codeforces"
+                        className="px-4 py-2 text-sm hover:bg-blue-600 hover:text-white flex items-center space-x-2"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                        <span>Codeforces</span>
+                      </Link>
+                    )}
+                    {!profileData.profiles.codeforces && (
+                      <Link
+                        to="/codeforces"
+                        className="px-4 py-2 text-sm hover:bg-blue-600 hover:text-white flex items-center space-x-2"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
+                        <span>Codeforces</span>
+                      </Link>
+                    )}
+                    
+                    {profileData.profiles.codechef && (
+                      <Link
+                        to="/codechef"
+                        className="px-4 py-2 text-sm hover:bg-blue-600 hover:text-white flex items-center space-x-2"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                        <span>CodeChef</span>
+                      </Link>
+                    )}
+                    {!profileData.profiles.codechef && (
+                      <Link
+                        to="/codechef"
+                        className="px-4 py-2 text-sm hover:bg-blue-600 hover:text-white flex items-center space-x-2"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
+                        <span>CodeChef</span>
+                      </Link>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/leetcode"
+                      className="block px-4 py-2 text-sm hover:bg-blue-600 hover:text-white"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      LeetCode
+                    </Link>
+                    <Link
+                      to="/codeforces"
+                      className="block px-4 py-2 text-sm hover:bg-blue-600 hover:text-white"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      Codeforces
+                    </Link>
+                    <Link
+                      to="/codechef"
+                      className="block px-4 py-2 text-sm hover:bg-blue-600 hover:text-white"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      CodeChef
+                    </Link>
+                  </>
+                )}
+              </motion.div>
             )}
           </div>
 
@@ -112,10 +199,12 @@ const Headers = () => {
           </motion.button>
 
           <motion.div
-            className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 flex items-center justify-center shadow-lg"
+            className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 flex items-center justify-center shadow-lg text-white"
             whileHover={{ scale: 1.1 }}
           >
-            <Link to="/profile" className="text-white text-sm font-semibold">CP</Link>
+            <Link to="/profile" className="text-white text-sm font-semibold">
+              {getUserInitial()}
+            </Link>
           </motion.div>
         </motion.div>
       </div>
