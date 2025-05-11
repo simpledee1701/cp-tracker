@@ -9,8 +9,6 @@ const codechefRoutes = require('./routes/codechefRoutes');
 const codeforcesRoutes = require('./routes/codeforcesRoutes');
 const userRoutes = require('./routes/userRoutes');
 const contestRoutes = require('./routes/contestRoutes');
-const calendarRoutes = require('./routes/calendarRoutes');
-const { scheduleCleanup } = require('./controllers/calendarController');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -28,16 +26,12 @@ app.use(cors({
 // Body parser
 app.use(express.json());
 
-// Scheduled tasks
-scheduleCleanup();
-
 // Routes
 app.use('/api/leetcode', leetcodeRoutes);
 app.use('/api/codechef', codechefRoutes);
 app.use('/api/codeforces', codeforcesRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/contests', contestRoutes);
-app.use('/api/calendar', calendarRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

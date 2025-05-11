@@ -4,7 +4,6 @@ import { UserAuth } from '../context/AuthContext';
 import {
   CalendarDaysIcon,
   ArrowPathIcon,
-  CheckIcon,
   TrashIcon,
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
@@ -15,60 +14,10 @@ const getContestId = (contest) => {
 
 export default function GoogleCalendarButton({ contest }) {
   const [loading, setLoading] = useState(false);
-  const [removeLoading, setRemoveLoading] = useState(false);
   const [status, setStatus] = useState(null);
-  const [isAdded, setIsAdded] = useState(false);
-  const [googleEventId, setGoogleEventId] = useState(null);
   const { profileData } = useUserProfile();
   const { session } = UserAuth();
   const contestId = getContestId(contest);
-  const API_BASE = import.meta.env.VITE_BACKEND_URL;
-
-  const checkAddedStatus = async () => {
-    if (!session?.access_token) {
-      setIsAdded(false);
-      return;
-    }
-
-    try {
-      const response = await fetch(`${API_BASE}/api/calendar/check?contestId=${encodeURIComponent(contestId)}`, {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`
-        }
-      });
-
-      if (!response.ok) throw new Error('Failed to check status');
-
-      const data = await response.json();
-      setIsAdded(data.isAdded);
-      setGoogleEventId(data.googleEventId || null);
-    } catch (error) {
-      console.error('Error checking contest status:', error);
-      setIsAdded(false);
-    }
-  };
-
-  useEffect(() => {
-    checkAddedStatus();
-
-    const handleMessage = (event) => {
-      if (event.data.type === 'CALENDAR_SUCCESS' && event.data.contestId === contestId) {
-        setIsAdded(true);
-        setGoogleEventId(event.data.googleEventId);
-        setStatus({ type: 'success', message: 'Successfully added to Google Calendar' });
-        setLoading(false);
-      } else if (event.data.type === 'CALENDAR_ERROR' && event.data.contestId === contestId) {
-        setStatus({ 
-          type: 'error', 
-          message: event.data.error || 'Failed to add to calendar' 
-        });
-        setLoading(false);
-      }
-    };
-
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, [contestId, session?.access_token]);
 
   const validateContest = () => {
     if (!contest.startTime || !contest.endTime) {
@@ -89,9 +38,7 @@ export default function GoogleCalendarButton({ contest }) {
     return null;
   };
 
-  const handleAddToCalendar = async () => {
-    if (isAdded) return;
-
+  const createCalendarLink = () => {
     if (!profileData?.email) {
       setStatus({ type: 'error', message: 'Please login to set reminders' });
       return;
@@ -107,49 +54,37 @@ export default function GoogleCalendarButton({ contest }) {
     setStatus(null);
 
     try {
-      const response = await fetch(`${API_BASE}/api/calendar/add`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({
-          contest: {
-            title: contest.title,
-            startTime: new Date(contest.startTime).toISOString(),
-            endTime: new Date(contest.endTime).toISOString(),
-            platform: contest.platform,
-            url: contest.url,
-            duration: contest.duration,
-            contestId
-          }
-        })
-      });
+      const start = new Date(contest.startTime);
+      const end = new Date(contest.endTime);
 
-      const data = await response.json();
+      const formatDate = (date) => {
+        return date.toISOString().replace(/-|:|\.\d\d\d/g, '');
+      };
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to add to calendar');
+      const details = [
+        `Platform: ${contest.platform}`,
+        `Duration: ${contest.duration} minutes`,
+        contest.url ? `URL: ${contest.url}` : ''
+      ].filter(Boolean).join('\n\n');
+      
+      const calendarUrl = new URL('https://calendar.google.com/calendar/render');
+      calendarUrl.searchParams.append('action', 'TEMPLATE');
+      calendarUrl.searchParams.append('text', contest.title);
+      calendarUrl.searchParams.append('details', details);
+      calendarUrl.searchParams.append('dates', `${formatDate(start)}/${formatDate(end)}`);
+      calendarUrl.searchParams.append('ctz', 'UTC');
+      
+      if (contest.url) {
+        calendarUrl.searchParams.append('location', contest.url);
       }
 
-      if (data.authUrl) {
-        // Open auth window centered on screen
-        const width = 500;
-        const height = 600;
-        const left = (window.innerWidth - width) / 2;
-        const top = (window.innerHeight - height) / 2;
-        
-        window.open(
-          data.authUrl,
-          'GoogleAuth',
-          `width=${width},height=${height},left=${left},top=${top}`
-        );
-      } else if (data.eventId) {
-        // Direct addition was successful
-        setIsAdded(true);
-        setGoogleEventId(data.eventId);
-        setStatus({ type: 'success', message: 'Added to calendar' });
-      }
+      // Add reminders (30 minutes and 1 day before)
+      calendarUrl.searchParams.append('remind', '30');
+      calendarUrl.searchParams.append('remind', '1440');
+
+      // Open in new tab
+      window.open(calendarUrl.toString(), '_blank');
+      setStatus({ type: 'success', message: 'Opened Google Calendar with event details' });
     } catch (error) {
       setStatus({ 
         type: 'error', 
@@ -161,79 +96,24 @@ export default function GoogleCalendarButton({ contest }) {
     }
   };
 
-  const handleRemoveFromCalendar = async () => {
-    if (!isAdded || !googleEventId) return;
-
-    setRemoveLoading(true);
-    setStatus(null);
-
-    try {
-      const response = await fetch(`${API_BASE}/api/calendar/remove`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({
-          contestId,
-          googleEventId
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to remove from calendar');
-      }
-
-      setIsAdded(false);
-      setGoogleEventId(null);
-      setStatus({ type: 'success', message: 'Removed from calendar' });
-    } catch (error) {
-      setStatus({ 
-        type: 'error', 
-        message: error.message,
-        showRetry: true 
-      });
-    } finally {
-      setRemoveLoading(false);
-    }
-  };
-
   return (
     <div className="flex flex-col gap-2">
       <div className="flex gap-2">
-        {isAdded ? (
-          <button
-            onClick={handleRemoveFromCalendar}
-            disabled={removeLoading}
-            className={`mt-2 flex items-center gap-2 px-3 py-1.5 text-sm rounded-md transition-colors ${
-              removeLoading ? 'bg-red-700' : 'bg-red-600 hover:bg-red-700'
-            } text-white`}
-            aria-label="Remove from Google Calendar"
-          >
-            {removeLoading ? (
-              <ArrowPathIcon className="w-4 h-4 animate-spin" />
-            ) : (
-              <TrashIcon className="w-4 h-4" />
-            )}
-            {removeLoading ? 'Removing...' : 'Remove'}
-          </button>
-        ) : (
-          <button
-            onClick={handleAddToCalendar}
-            disabled={loading}
-            className={`mt-2 flex items-center gap-2 px-3 py-1.5 text-sm rounded-md transition-colors ${
-              loading ? 'bg-blue-700' : 'bg-blue-600 hover:bg-blue-700'
-            } text-white`}
-            aria-label="Add to Google Calendar"
-          >
-            {loading ? (
-              <ArrowPathIcon className="w-4 h-4 animate-spin" />
-            ) : (
-              <CalendarDaysIcon className="w-4 h-4" />
-            )}
-            {loading ? 'Adding...' : 'Add to Calendar'}
-          </button>
-        )}
+        <button
+          onClick={createCalendarLink}
+          disabled={loading}
+          className={`mt-2 flex items-center gap-2 px-3 py-1.5 text-sm rounded-md transition-colors ${
+            loading ? 'bg-blue-700' : 'bg-blue-600 hover:bg-blue-700'
+          } text-white`}
+          aria-label="Add to Google Calendar"
+        >
+          {loading ? (
+            <ArrowPathIcon className="w-4 h-4 animate-spin" />
+          ) : (
+            <CalendarDaysIcon className="w-4 h-4" />
+          )}
+          {loading ? 'Opening...' : 'Add to Calendar'}
+        </button>
       </div>
 
       {status && (
@@ -247,7 +127,7 @@ export default function GoogleCalendarButton({ contest }) {
             {status.message}
             {status.showRetry && (
               <button 
-                onClick={isAdded ? handleRemoveFromCalendar : handleAddToCalendar}
+                onClick={createCalendarLink}
                 className="ml-2 underline hover:no-underline"
               >
                 Try again
