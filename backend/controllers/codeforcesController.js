@@ -37,4 +37,53 @@ const getProfile = async (req, res) => {
   }
 };
 
-module.exports = { getProfile };
+const getContestRating = async (req, res) => {
+  try {
+    const { handle } = req.params;
+    const ratingHistory = await getUserRating(handle);
+    
+    res.json({
+      handle,
+      contestCount: ratingHistory.length,
+      ratingHistory: ratingHistory.map(contest => ({
+        contestId: contest.contestId,
+        contestName: contest.contestName,
+        rank: contest.rank,
+        oldRating: contest.oldRating,
+        newRating: contest.newRating,
+        ratingChange: contest.newRating - contest.oldRating,
+        date: new Date(contest.ratingUpdateTimeSeconds * 1000)
+      }))
+    });
+  } catch (error) {
+    res.status(404).json({ error: error.message });
+  }
+};
+
+const getHeatmap = async (req, res) => {
+  try {
+    const { handle } = req.params;
+    const submissions = await getUserSubmissions(handle);
+
+    // Process submissions for the last year
+    const oneYearAgo = Date.now() - 31536000000;
+    const submissionCalendar = submissions.reduce((acc, submission) => {
+      const date = new Date(submission.creationTimeSeconds * 1000);
+      if (date > oneYearAgo) {
+        const key = date.toISOString().split('T')[0];
+        acc[key] = (acc[key] || 0) + 1;
+      }
+      return acc;
+    }, {});
+
+    res.json({
+      handle,
+      submissionCalendar
+    });
+  } catch (error) {
+    res.status(404).json({ error: error.message });
+  }
+};
+
+
+module.exports = { getProfile, getContestRating, getHeatmap};
