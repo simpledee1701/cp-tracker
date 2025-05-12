@@ -1,22 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Calendar, ChevronUp, ChevronDown, Award, Trophy, Activity, Star, Code, Users, TrendingUp } from 'lucide-react';
+import { ChevronUp, ChevronDown, Award, Star, Code, Users, TrendingUp } from 'lucide-react';
+import { IoStarSharp } from "react-icons/io5";
 
-export default function CodeChefStats({ data }) {
+const CodeChefStats = ({ data }) => {
   const [expandedSections, setExpandedSections] = useState({
     profile: true,
     analysis: true,
     heatmap: true,
     contest: true
   });
-  
-  const heatmapRef = useRef(null);
-
-  useEffect(() => {
-    if (data && data.submissionHeatmap && heatmapRef.current) {
-      renderHeatmap(data.submissionHeatmap.heatmapData);
-    }
-  }, [data, expandedSections.heatmap]);
 
   const toggleSection = (section) => {
     setExpandedSections(prev => ({
@@ -42,57 +35,55 @@ export default function CodeChefStats({ data }) {
     date: contest.date
   }));
 
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    show: { y: 0, opacity: 1, transition: { duration: 0.5 } }
+  // Function to render stars based on count
+  const renderStars = (count) => {
+    return (
+      <div className="flex justify-center mb-2">
+        {Array.from({ length: count }).map((_, i) => (
+          <IoStarSharp key={i} className="text-yellow-400 text-4xl mx-0.5" />
+        ))}
+      </div>
+    );
   };
 
   return (
-    <div
-      className="space-y-6"
-      style={{ opacity: 1, transition: 'opacity 0.5s' }}
-    >
-      {/* Header Section */}
-      <div 
-        className="bg-gray-800 rounded-lg shadow-lg p-6 text-gray-200 border border-gray-700"
-        style={{ opacity: 1, transition: 'opacity 0.5s' }}
-      >
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-6 justify-center">
-          <div className="flex-1">
-            <div className="mt-3 flex flex-wrap gap-3 items-center justify-center">
-              <div className="bg-blue-900/50 text-blue-100 px-3 py-1 rounded-full text-sm flex items-center border border-blue-700/50 ">
-                <Trophy size={16} className="mr-1" />
-                Rating: {profileInfo.rating}
-              </div>
-              <div className="bg-blue-900/50 text-blue-100 px-3 py-1 rounded-full text-sm flex items-center border border-blue-700/50">
-                <Activity size={16} className="mr-1" />
-                Active Days: {submissionHeatmap.activeDays}
-              </div>
-              <div className="bg-blue-900/50 text-blue-100 px-3 py-1 rounded-full text-sm flex items-center border border-blue-700/50">
-                <Users size={16} className="mr-1" />
-                Best Rank: {contestGraph.bestRank}
-              </div>
+    <div className="space-y-6">
+      {/* Profile Header Section - Centered */}
+      <div className="bg-gray-800 rounded-lg shadow-lg p-6 text-gray-200 border border-gray-700 text-center">
+        <div className="flex flex-col items-center">
+          {/* Rating Display - Centered */}
+          <div className="flex flex-col items-center mb-4">
+            {profileInfo.stars && renderStars(profileInfo.stars)}
+            <div className="text-4xl font-bold text-white mb-1">{profileInfo.rating}</div>
+            <div className="flex items-center gap-1 text-gray-400">
+              <span>Highest: {profileInfo.highestRating}</span>
+            </div>
+          </div>
+          
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-2 gap-4 w-full max-w-md mx-auto">
+            <div className="bg-gray-700/50 p-3 rounded-lg border border-gray-600">
+              <div className="text-gray-400 text-sm">Global Rank</div>
+              <div className="text-xl font-bold text-blue-400">#{profileInfo.ranks.global}</div>
+            </div>
+            <div className="bg-gray-700/50 p-3 rounded-lg border border-gray-600">
+              <div className="text-gray-400 text-sm">Country Rank</div>
+              <div className="text-xl font-bold text-blue-400">#{profileInfo.ranks.country}</div>
+            </div>
+            <div className="bg-gray-700/50 p-3 rounded-lg border border-gray-600">
+              <div className="text-gray-400 text-sm">Problems Solved</div>
+              <div className="text-xl font-bold text-green-400">{profileInfo.problemsSolved}</div>
+            </div>
+            <div className="bg-gray-700/50 p-3 rounded-lg border border-gray-600">
+              <div className="text-gray-400 text-sm">Active Days</div>
+              <div className="text-xl font-bold text-purple-400">{submissionHeatmap.activeDays}</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Analysis Section */}
-      <div
-        className="bg-gray-800 rounded-lg shadow-lg overflow-hidden text-gray-200 border border-gray-700"
-        style={{ opacity: 1, transition: 'opacity 0.5s' }}
-      >
+      {/* Performance Analysis */}
+      <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden text-gray-200 border border-gray-700">
         <div 
           className="flex items-center justify-between p-4 cursor-pointer bg-gray-700"
           onClick={() => toggleSection('analysis')}
@@ -107,10 +98,7 @@ export default function CodeChefStats({ data }) {
         </div>
         
         {expandedSections.analysis && (
-          <div 
-            className="p-4"
-            style={{ opacity: 1, transition: 'opacity 0.3s' }}
-          >
+          <div className="p-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div className="bg-gray-700/50 p-4 rounded-lg border border-gray-600">
                 <h3 className="text-lg font-medium text-blue-300">Activity Stats</h3>
@@ -169,10 +157,7 @@ export default function CodeChefStats({ data }) {
       </div>
 
       {/* Contest Performance Graph */}
-      <div
-        className="bg-gray-800 rounded-lg shadow-lg overflow-hidden text-gray-200 border border-gray-700"
-        style={{ opacity: 1, transition: 'opacity 0.5s' }}
-      >
+      <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden text-gray-200 border border-gray-700">
         <div 
           className="flex items-center justify-between p-4 cursor-pointer bg-gray-700"
           onClick={() => toggleSection('contest')}
@@ -187,10 +172,7 @@ export default function CodeChefStats({ data }) {
         </div>
         
         {expandedSections.contest && (
-          <div 
-            className="p-4"
-            style={{ opacity: 1, transition: 'opacity 0.3s' }}
-          >
+          <div className="p-4">
             <div className="mb-4 flex flex-wrap gap-3">
               <div className="bg-gray-700/50 text-gray-200 px-3 py-1 rounded-full text-sm border border-gray-600">
                 Contests: {contestGraph.contestsParticipated}
@@ -254,10 +236,7 @@ export default function CodeChefStats({ data }) {
       </div>
 
       {/* Recent Contests Table */}
-      <div
-        className="bg-gray-800 rounded-lg shadow-lg overflow-hidden text-gray-200 border border-gray-700"
-        style={{ opacity: 1, transition: 'opacity 0.5s' }}
-      >
+      <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden text-gray-200 border border-gray-700">
         <div className="p-4 bg-gray-700">
           <h2 className="text-xl font-semibold flex items-center">
             <Code className="mr-2 text-blue-400" /> Recent Contests
@@ -279,11 +258,6 @@ export default function CodeChefStats({ data }) {
                 <tr 
                   key={index} 
                   className="hover:bg-gray-700 transition-colors duration-150"
-                  style={{ 
-                    opacity: 1, 
-                    transform: 'translateY(0px)',
-                    transition: `opacity 0.3s, transform 0.3s ${index * 0.1}s` 
-                  }}
                 >
                   <td className="py-3 px-4 text-sm">{contest.contestName}</td>
                   <td className="py-3 px-4 text-sm text-gray-400">{contest.date}</td>
@@ -301,4 +275,6 @@ export default function CodeChefStats({ data }) {
       </div>
     </div>
   );
-}
+};
+
+export default CodeChefStats;

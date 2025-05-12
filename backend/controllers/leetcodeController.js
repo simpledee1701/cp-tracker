@@ -80,6 +80,42 @@ class LeetcodeController {
       next(error);
     }
   }
+
+  async getUserProblemsSolved(req, res) {
+    try {
+      const { username } = req.params; // or req.query depending on your route setup
+      
+      if (!username) {
+        return res.status(400).json({
+          success: false,
+          message: 'Username is required'
+        });
+      }
+
+      const result = await getUserProblemsSolved(username);
+      
+      if (!result || !result.matchedUser) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found or no data available'
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        data: result
+      });
+      
+    } catch (error) {
+      console.error('Error fetching user problems solved:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        error: error.message
+      });
+    }
+  }
+
 }
 
 module.exports = new LeetcodeController();
