@@ -7,6 +7,7 @@ import { SiLeetcode, SiCodechef, SiCodeforces } from "react-icons/si";
 import { MdVerified } from "react-icons/md";
 import { FaGraduationCap } from "react-icons/fa6";
 import { FaLinkedin, FaGithub } from "react-icons/fa";
+import CombinedHeatmap from "../components/CombinedHeatmap";
 
 const Dashboard = () => {
   const { profileData } = useUserProfile();
@@ -32,13 +33,14 @@ const Dashboard = () => {
   return (
     <div>
       <Header />
-      <div className="min-h-screen flex bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+
+      <div className="min-h-screen p-4 flex bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
         {/* Sidebar */}
         <motion.div
           initial={{ x: -100, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="w-72 bg-black/30 backdrop-blur-md p-6 border border-white/10 shadow-xl space-y-4 py-6"
+          className="w-72 bg-black/30 backdrop-blur-md p-6 rounded-xl border border-white/10 shadow-xl space-y-4 py-6"
         >
           {/* Avatar */}
           <div className="flex flex-col items-center">
@@ -173,16 +175,9 @@ const Dashboard = () => {
 
         {/* Main Content */}
         <div className="flex-1 p-6">
-          <h1 className="text-2xl font-semibold text-gray-700 dark:text-white mb-4">Dashboard</h1>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 bg-white dark:bg-gray-800 rounded-xl shadow">
-              <h3 className="font-medium text-gray-700 dark:text-gray-200">Analysis</h3>
-              {/* Add analysis content here */}
-            </div>
-            <div className="p-4 bg-white dark:bg-gray-800 rounded-xl shadow">
-              <h3 className="font-medium text-gray-700 dark:text-gray-200">Performance Stats</h3>
-              {/* Add performance stats here */}
-            </div>
+          <div>
+            {/* Other profile components */}
+            <CombinedHeatmap profileData={profileData} />
           </div>
         </div>
       </div>
