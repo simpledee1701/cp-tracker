@@ -8,7 +8,6 @@ import { SiLeetcode, SiCodechef, SiCodeforces } from "react-icons/si";
 import { MdVerified } from "react-icons/md";
 import { FaGraduationCap } from "react-icons/fa6";
 import { FaLinkedin, FaGithub } from "react-icons/fa";
-import CombinedHeatmap from "../components/CombinedHeatmap";
 import { useEffect, useState } from "react";
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
@@ -99,7 +98,6 @@ const Dashboard = () => {
   return (
     <div>
       <Header />
-
       <div className="min-h-screen flex bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
         {/* Enhanced Sidebar */}
         <motion.div
@@ -229,10 +227,6 @@ const Dashboard = () => {
         </motion.div>
 
         {/* Main Content */}
-        <div className="flex-1 p-6">
-          <div>
-            {/* Other profile components */}
-            <CombinedHeatmap profileData={profileData} />
         <div className="flex-1 p-6 overflow-y-auto">
           {/* First Row - Two Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
