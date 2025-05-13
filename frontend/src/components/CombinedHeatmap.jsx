@@ -89,7 +89,7 @@ const CombinedHeatmap = ({ profileData }) => {
 
   if (loading) {
     return (
-      <div className="bg-black/30 backdrop-blur-m rounded-lg p-6 flex flex-col items-center justify-center">
+      <div className="bg-black/15 backdrop-blur-m rounded-lg p-6 flex flex-col items-center justify-center">
         <ActivityIcon className="w-12 h-12 text-gray-400 animate-pulse mb-4" />
         <p className="text-gray-600 font-medium">Loading coding activity...</p>
       </div>
@@ -98,7 +98,7 @@ const CombinedHeatmap = ({ profileData }) => {
 
   if (error) {
     return (
-      <div className="bg-black/30 backdrop-blur-m rounded-lg p-6 text-center">
+      <div className="bg-black/15 backdrop-blur-m rounded-lg p-6 text-center">
         <CodeIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
         <p className="text-red-600 font-semibold">{error}</p>
         <p className="text-gray-500 text-sm mt-2">Check your connections or usernames</p>
@@ -107,8 +107,8 @@ const CombinedHeatmap = ({ profileData }) => {
   }
 
   return (
-    <div className="text-white rounded-lg p-4 bg-black/30 backdrop-blur-m">
-      <div className="flex justify-between items-center mb-4">
+    <div className="text-white mt-1 rounded-lg p-6 bg-black/15 backdrop-blur-m">
+      <div className="flex justify-between items-center mb-4 ">
         <div className="text-sm">
           <span className="text-xl font-semibold">{totalSubmissions}</span> submissions in the past year
         </div>
@@ -127,10 +127,6 @@ const CombinedHeatmap = ({ profileData }) => {
         gutterSize={4}
         showWeekdayLabels={true}
       />
-
-      <div className="text-xs text-center text-gray-500 mt-2">
-        Contributions from LeetCode, Codeforces, and CodeChef
-      </div>
     </div>
   );
 };

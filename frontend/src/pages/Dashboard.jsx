@@ -2,14 +2,12 @@ import { motion } from "framer-motion";
 import Header from "../components/Header";
 import { useUserProfile } from "../context/UserProfileContext";
 import { UserAuth } from "../context/AuthContext";
-import { Link } from "react-router-dom";
 import { FiMail, FiMapPin, FiExternalLink } from "react-icons/fi";
 import { SiLeetcode, SiCodechef, SiCodeforces } from "react-icons/si";
 import { MdVerified } from "react-icons/md";
-import { FaGraduationCap } from "react-icons/fa6";
+import { FaGraduationCap, FaBriefcase } from "react-icons/fa6";
 import { FaLinkedin, FaGithub } from "react-icons/fa";
 import { useEffect, useState } from "react";
-import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import CombinedHeatmap from "../components/CombinedHeatmap";
 
@@ -28,6 +26,7 @@ const Dashboard = () => {
     github: profileData?.github || "",
     organization: profileData?.education || "",
     location: profileData?.location || "",
+    work: profileData?.work || "",
     codeforces_username: profileData?.codeforces_username || "",
     leetcode_username: profileData?.leetcode_username || "",
     codechef_username: profileData?.codechef_username || "",
@@ -69,8 +68,7 @@ const Dashboard = () => {
   // Calculate total questions solved across all platforms
   const getTotalQuestionsSolved = () => {
     if (!dashboardData?.total_questions?.length) return 0;
-
-    const totals = dashboardData.total_questions[0]
+    const totals = dashboardData.total_questions[0];
     return (totals.leetcode_total || 0) +
       (totals.codechef_total || 0) +
       (totals.codeforces_total || 0);
@@ -79,13 +77,43 @@ const Dashboard = () => {
   // Get contest rating for a specific platform
   const getContestRating = (platform) => {
     if (!dashboardData?.contest_ranking_info?.length) return null;
-    return dashboardData.contest_ranking_info[0][`${platform}_rating`];
+    const data = dashboardData.contest_ranking_info[0];
+    
+    if (platform === 'leetcode') {
+      return {
+        recent: data.leetcode_recent_contest_rating,
+        max: data.leetcode_max_contest_rating
+      };
+    } else if (platform === 'codechef') {
+      return {
+        stars: data.codechef_stars,
+        recent: data.codechef_recent_contest_rating,
+        max: data.codechef_max_contest_rating
+      };
+    } else if (platform === 'codeforces') {
+      return {
+        recent: data.codeforces_recent_contest_rating,
+        max: data.codeforces_max_contest_rating
+      };
+    }
+    return null;
   };
 
   // Get questions solved for a specific platform
   const getPlatformQuestions = (platform) => {
     if (!dashboardData?.total_questions?.length) return 0;
     return dashboardData.total_questions[0][`${platform}_total`] || 0;
+  };
+
+  // Get LeetCode difficulty breakdown
+  const getLeetCodeBreakdown = () => {
+    if (!dashboardData?.total_questions?.length) return { easy: 0, medium: 0, hard: 0 };
+    const data = dashboardData.total_questions[0];
+    return {
+      easy: data.leetcode_easy || 0,
+      medium: data.leetcode_medium || 0,
+      hard: data.leetcode_hard || 0
+    };
   };
 
   if (loading) {
@@ -96,6 +124,11 @@ const Dashboard = () => {
     );
   }
 
+  const leetCodeBreakdown = getLeetCodeBreakdown();
+  const leetCodeRating = getContestRating('leetcode');
+  const codechefRating = getContestRating('codechef');
+  const codeforcesRating = getContestRating('codeforces');
+
   return (
     <div>
       <Header />
@@ -104,125 +137,166 @@ const Dashboard = () => {
         <motion.div
           initial={{ x: -100, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="w-72 bg-black/30 backdrop-blur-md p-6 border-r border-white/10 shadow-xl space-y-6 py-6 flex flex-col"
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="w-80 h-full bg-gradient-to-b from-gray-900/80 to-gray-900/60 backdrop-blur-lg p-6 border-r border-white/5 shadow-2xl space-y-8 flex flex-col overflow-y-auto"
         >
           {/* Avatar Section */}
           <div className="flex flex-col items-center">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-3xl font-bold mb-3 text-white shadow-lg">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="w-28 h-28 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center text-4xl font-bold mb-4 text-white shadow-lg ring-4 ring-white/10 ring-offset-2 ring-offset-gray-900"
+            >
               {getAvatar(user.name)}
-            </div>
-            <h2 className="text-xl font-bold text-gray-800 dark:text-white text-center">
+            </motion.div>
+            <h2 className="text-2xl font-bold text-white text-center tracking-tight">
               {user.name}
             </h2>
-            <div className="flex items-center mt-2 space-x-1">
-              <FiMail className="text-gray-500 dark:text-gray-300" />
-              <span className="text-gray-700 dark:text-gray-300 text-sm">{user.email}</span>
+            <div className="flex items-center mt-3 space-x-2 bg-gray-800/50 px-4 py-2 rounded-full">
+              <FiMail className="text-gray-300" />
+              <span className="text-gray-300 text-sm font-medium">{user.email}</span>
               {user.emailVerified && (
-                <MdVerified className="text-green-500" size={16} />
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="text-green-400 ml-1"
+                >
+                  <MdVerified size={18} />
+                </motion.div>
               )}
             </div>
           </div>
 
           {/* Social Links */}
-          <div className="bg-white/10 p-2 rounded-xl border border-white/20">
-            <h3 className="text-sm font-semibold text-white mb-3">Connect</h3>
-            <div className="flex justify-center space-x-4">
+          <div className="bg-gray-800/30 p-4 rounded-xl border border-white/10 shadow-inner">
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Connect With Me</h3>
+            <div className="flex justify-center space-x-5">
               {user.linkedin && (
-                <a
+                <motion.a
+                  whileHover={{ y: -2 }}
                   href={user.linkedin}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 bg-blue-600 rounded-full hover:bg-blue-700 transition transform hover:scale-110"
+                  className="p-3 bg-blue-600/90 rounded-xl hover:bg-blue-600 transition-all shadow-md hover:shadow-blue-500/30"
                 >
-                  <FaLinkedin className="text-white" size={18} />
-                </a>
+                  <FaLinkedin className="text-white" size={20} />
+                </motion.a>
               )}
               {user.github && (
-                <a
+                <motion.a
+                  whileHover={{ y: -2 }}
                   href={user.github}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 bg-gray-800 rounded-full hover:bg-gray-700 transition transform hover:scale-110"
+                  className="p-3 bg-gray-800 rounded-xl hover:bg-gray-700 transition-all shadow-md hover:shadow-gray-500/30"
                 >
-                  <FaGithub className="text-white" size={18} />
-                </a>
+                  <FaGithub className="text-white" size={20} />
+                </motion.a>
               )}
             </div>
           </div>
 
           {/* Coding Platforms */}
           <div className="flex-1">
-            <h3 className="text-sm font-semibold text-white mb-3">Coding Profiles</h3>
-            <div className="space-y-2">
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Coding Profiles</h3>
+            <div className="space-y-3">
               {user.leetcode_username && (
-                <a
+                <motion.a
+                  whileHover={{ x: 5 }}
                   href={`https://leetcode.com/u/${user.leetcode_username}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition group"
+                  className="flex items-center justify-between p-4 bg-gray-800/40 rounded-xl hover:bg-gray-800/60 transition-all group border border-white/5 hover:border-white/10"
                 >
-                  <div className="flex items-center space-x-3">
-                    <SiLeetcode className="text-yellow-500" size={18} />
-                    <span className="text-white">LeetCode</span>
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-yellow-500/20 rounded-lg">
+                      <SiLeetcode className="text-yellow-400" size={20} />
+                    </div>
+                    <span className="text-white font-medium">LeetCode</span>
                   </div>
-                  <FiExternalLink className="text-gray-400 group-hover:text-white transition" />
-                </a>
+                  <FiExternalLink className="text-gray-400 group-hover:text-yellow-400 transition" />
+                </motion.a>
               )}
               {user.codechef_username && (
-                <a
+                <motion.a
+                  whileHover={{ x: 5 }}
                   href={`https://www.codechef.com/users/${user.codechef_username}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition group"
+                  className="flex items-center justify-between p-4 bg-gray-800/40 rounded-xl hover:bg-gray-800/60 transition-all group border border-white/5 hover:border-white/10"
                 >
-                  <div className="flex items-center space-x-3">
-                    <SiCodechef className="text-red-500" size={18} />
-                    <span className="text-white">CodeChef</span>
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-red-500/20 rounded-lg">
+                      <SiCodechef className="text-red-400" size={20} />
+                    </div>
+                    <span className="text-white font-medium">CodeChef</span>
                   </div>
-                  <FiExternalLink className="text-gray-400 group-hover:text-white transition" />
-                </a>
+                  <FiExternalLink className="text-gray-400 group-hover:text-red-400 transition" />
+                </motion.a>
               )}
               {user.codeforces_username && (
-                <a
+                <motion.a
+                  whileHover={{ x: 5 }}
                   href={`https://codeforces.com/profile/${user.codeforces_username}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition group"
+                  className="flex items-center justify-between p-4 bg-gray-800/40 rounded-xl hover:bg-gray-800/60 transition-all group border border-white/5 hover:border-white/10"
                 >
-                  <div className="flex items-center space-x-3">
-                    <SiCodeforces className="text-blue-400" size={18} />
-                    <span className="text-white">CodeForces</span>
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-blue-500/20 rounded-lg">
+                      <SiCodeforces className="text-blue-400" size={20} />
+                    </div>
+                    <span className="text-white font-medium">CodeForces</span>
                   </div>
-                  <FiExternalLink className="text-gray-400 group-hover:text-white transition" />
-                </a>
+                  <FiExternalLink className="text-gray-400 group-hover:text-blue-400 transition" />
+                </motion.a>
               )}
             </div>
           </div>
 
           {/* User Info */}
-          <div className="space-y-3">
+          <div className="space-y-4">
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">About</h3>
             {user.location && (
-              <div className="flex items-center p-3 bg-white/5 rounded-lg border border-white/10">
-                <div className="p-2 bg-blue-500/20 rounded-full mr-3">
-                  <FiMapPin className="text-blue-400" size={16} />
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                className="flex items-center p-4 bg-gray-800/40 rounded-xl border border-white/5"
+              >
+                <div className="p-3 bg-blue-500/20 rounded-xl mr-4">
+                  <FiMapPin className="text-blue-400" size={18} />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400">Location</p>
-                  <p className="text-sm font-medium text-white">{user.location}</p>
+                  <p className="text-xs text-gray-400 font-medium">Location</p>
+                  <p className="text-sm font-semibold text-white">{user.location}</p>
                 </div>
-              </div>
+              </motion.div>
             )}
             {user.organization && (
-              <div className="flex items-center p-3 bg-white/5 rounded-lg border border-white/10">
-                <div className="p-2 bg-purple-500/20 rounded-full mr-3">
-                  <FaGraduationCap className="text-purple-400" size={16} />
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                className="flex items-center p-4 bg-gray-800/40 rounded-xl border border-white/5"
+              >
+                <div className="p-3 bg-purple-500/20 rounded-xl mr-4">
+                  <FaGraduationCap className="text-purple-400" size={18} />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400">Education</p>
-                  <p className="text-sm font-medium text-white">{user.organization}</p>
+                  <p className="text-xs text-gray-400 font-medium">Education</p>
+                  <p className="text-sm font-semibold text-white">{user.organization}</p>
                 </div>
-              </div>
+              </motion.div>
+            )}
+            {user.work && (
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                className="flex items-center p-4 bg-gray-800/40 rounded-xl border border-white/5"
+              >
+                <div className="p-3 bg-green-500/20 rounded-xl mr-4">
+                  <FaBriefcase className="text-green-400" size={18} />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400 font-medium">Work</p>
+                  <p className="text-sm font-semibold text-white">{user.work}</p>
+                </div>
+              </motion.div>
             )}
           </div>
         </motion.div>
@@ -230,144 +304,246 @@ const Dashboard = () => {
         {/* Main Content */}
         <div className="flex-1 p-6 overflow-y-auto">
           <CombinedHeatmap profileData={profileData} />
-          {/* First Row - Two Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            {/* Total Count Card */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 flex flex-col items-center justify-center">
-              <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-6 text-center">Total Questions Solved</h1>
-              <div className="text-5xl font-bold text-yellow-500 flex items-center justify-center h-full -mt-4">
-                {getTotalQuestionsSolved()}
+          
+          {/* First Row: Stats Cards */}
+          <div className="grid grid-cols-1 mt-6 md:grid-cols-3 gap-6">
+            {/* Card 1: Total Questions Solved */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+              className="bg-gradient-to-br from-gray-900/80 to-gray-800/60 rounded-2xl border border-white/10 p-6 shadow-lg backdrop-blur-sm"
+            >
+              <div className="flex flex-col items-center justify-center h-full">
+                <h1 className="text-xl font-semibold text-gray-300 mb-4 text-center">Total Questions Solved</h1>
+                <motion.div
+                  animate={{ scale: [1, 1.05, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity, repeatType: "reverse" }}
+                  className="text-6xl font-bold text-yellow-400 flex items-center justify-center h-full"
+                >
+                  {getTotalQuestionsSolved()}
+                </motion.div>
+                <p className="text-sm text-gray-400 mt-4">Across all platforms</p>
               </div>
-            </div>
+            </motion.div>
 
-            {/* Platform Distribution Card */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 flex flex-col items-center">
-              <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">
-                Platform Distribution
-              </h3>
-              <div className="flex flex-col md:flex-row items-center justify-center gap-8">
-                {/* Circular Graph with Center Text */}
-                <div className="w-40 h-40 relative">
+            {/* Card 2: LeetCode Statistics */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+              className="bg-gradient-to-br from-gray-900/80 to-gray-800/60 rounded-2xl border border-white/10 p-6 shadow-lg backdrop-blur-sm"
+            >
+              <div className="flex items-center justify-center mb-4">
+                <h3 className="text-xl font-semibold text-white">DSA</h3>
+              </div>
+
+              {/* Circular Progress with Total */}
+              <div className="flex flex-col items-center mb-6">
+                <div className="w-32 h-32 relative mb-4">
                   <svg viewBox="0 0 100 100" className="w-full h-full">
-                    {/* Graph segments remain the same */}
-                    <circle cx="50" cy="50" r="45" fill="transparent" stroke="#f59e0b" strokeWidth="10"
-                      strokeDasharray={`${(getPlatformQuestions('leetcode') / getTotalQuestionsSolved()) * 283} 283`}
-                      transform="rotate(-90 50 50)" />
-                    <circle cx="50" cy="50" r="45" fill="transparent" stroke="#ef4444" strokeWidth="10"
-                      strokeDasharray={`${(getPlatformQuestions('codechef') / getTotalQuestionsSolved()) * 283} 283`}
-                      strokeDashoffset={`-${(getPlatformQuestions('leetcode') / getTotalQuestionsSolved()) * 283}`}
-                      transform="rotate(-90 50 50)" />
-                    <circle cx="50" cy="50" r="45" fill="transparent" stroke="#3b82f6" strokeWidth="10"
-                      strokeDasharray={`${(getPlatformQuestions('codeforces') / getTotalQuestionsSolved()) * 283} 283`}
-                      strokeDashoffset={`-${((getPlatformQuestions('leetcode') + getPlatformQuestions('codechef')) / getTotalQuestionsSolved()) * 283}`}
+                    <circle cx="50" cy="50" r="40" fill="transparent" stroke="#374151" strokeWidth="8" />
+                    <circle cx="50" cy="50" r="40" fill="transparent" stroke="#f59e0b" strokeWidth="8" strokeLinecap="round"
+                      strokeDasharray={`${(getPlatformQuestions('leetcode') / getTotalQuestionsSolved()) * 251} 251`}
                       transform="rotate(-90 50 50)" />
                     <text x="50" y="50" textAnchor="middle" dominantBaseline="middle"
-                      className="text-sm font-medium fill-gray-600 dark:fill-gray-300">
-                      Questions
+                      className="text-2xl font-bold fill-white">
+                      {getPlatformQuestions('leetcode')}
                     </text>
                   </svg>
                 </div>
-                {/* Color Legend remains the same */}
-                <div className="space-y-3">
-                  {user.leetcode_username && (
-                    <div className="flex items-center">
-                      <div className="w-4 h-4 bg-yellow-500 rounded-full mr-2"></div>
-                      <span className="text-gray-700 dark:text-gray-300">LeetCode</span>
-                    </div>
-                  )}
-                  {user.codechef_username && (
-                    <div className="flex items-center">
-                      <div className="w-4 h-4 bg-red-500 rounded-full mr-2"></div>
-                      <span className="text-gray-700 dark:text-gray-300">CodeChef</span>
-                    </div>
-                  )}
-                  {user.codeforces_username && (
-                    <div className="flex items-center">
-                      <div className="w-4 h-4 bg-blue-500 rounded-full mr-2"></div>
-                      <span className="text-gray-700 dark:text-gray-300">CodeForces</span>
-                    </div>
-                  )}
+              </div>
+
+              {/* Difficulty Breakdown */}
+              <div className="space-y-3">
+                <div className="flex justify-between items-center bg-gray-800/50 p-3 rounded-lg border border-white/5">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+                    <span className="text-gray-300">Easy</span>
+                  </div>
+                  <span className="text-white font-medium">{leetCodeBreakdown.easy}</span>
+                </div>
+                <div className="flex justify-between items-center bg-gray-800/50 p-3 rounded-lg border border-white/5">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 bg-yellow-500 rounded-full mr-3"></div>
+                    <span className="text-gray-300">Medium</span>
+                  </div>
+                  <span className="text-white font-medium">{leetCodeBreakdown.medium}</span>
+                </div>
+                <div className="flex justify-between items-center bg-gray-800/50 p-3 rounded-lg border border-white/5">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 bg-red-500 rounded-full mr-3"></div>
+                    <span className="text-gray-300">Hard</span>
+                  </div>
+                  <span className="text-white font-medium">{leetCodeBreakdown.hard}</span>
                 </div>
               </div>
-            </div>
+            </motion.div>
+
+            {/* Card 3: CodeChef & CodeForces Distribution */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.3 }}
+              className="bg-gradient-to-br from-gray-900/80 to-gray-800/60 rounded-2xl border border-white/10 p-6 shadow-lg backdrop-blur-sm"
+            >
+              <h3 className="text-xl font-semibold text-white mb-6 text-center">Competitive Platforms</h3>
+
+              {/* Platform Distribution */}
+              <div className="flex flex-col items-center mb-6">
+                <div className="w-40 h-40 relative">
+                  <svg viewBox="0 0 100 100" className="w-full h-full">
+                    <circle cx="50" cy="50" r="40" fill="transparent" stroke="#374151" strokeWidth="8" />
+                    <circle cx="50" cy="50" r="40" fill="transparent" stroke="#ef4444" strokeWidth="8" strokeLinecap="round"
+                      strokeDasharray={`${(getPlatformQuestions('codechef')) / (getPlatformQuestions('codechef') + getPlatformQuestions('codeforces')) * 251} 251`}
+                      transform="rotate(-90 50 50)" />
+                    <circle cx="50" cy="50" r="40" fill="transparent" stroke="#3b82f6" strokeWidth="8" strokeLinecap="round"
+                      strokeDasharray={`${(getPlatformQuestions('codeforces') / (getPlatformQuestions('codechef') + getPlatformQuestions('codeforces'))) * 251} 251`}
+                      strokeDashoffset={`-${(getPlatformQuestions('codechef') / (getPlatformQuestions('codechef') + getPlatformQuestions('codeforces'))) * 251}`}
+                      transform="rotate(-90 50 50)" />
+                    <text x="50" y="50" textAnchor="middle" dominantBaseline="middle"
+                      className="text-lg font-bold fill-white">
+                      {getPlatformQuestions('codechef') + getPlatformQuestions('codeforces')}
+                    </text>
+                  </svg>
+                </div>
+              </div>
+
+              {/* Platform Details */}
+              <div className="space-y-4">
+                {user.codechef_username && (
+                  <motion.div
+                    whileHover={{ x: 5 }}
+                    className="flex items-center justify-between bg-gray-800/50 p-4 rounded-xl border border-white/5"
+                  >
+                    <div className="flex items-center">
+                      <SiCodechef className="text-red-500 mr-3" size={20} />
+                      <span className="text-white">CodeChef</span>
+                    </div>
+                    <div className="text-white font-medium">
+                      {getPlatformQuestions('codechef')}
+                    </div>
+                  </motion.div>
+                )}
+                {user.codeforces_username && (
+                  <motion.div
+                    whileHover={{ x: 5 }}
+                    className="flex items-center justify-between bg-gray-800/50 p-4 rounded-xl border border-white/5"
+                  >
+                    <div className="flex items-center">
+                      <SiCodeforces className="text-blue-400 mr-3" size={20} />
+                      <span className="text-white">CodeForces</span>
+                    </div>
+                    <div className="text-white font-medium">
+                      {getPlatformQuestions('codeforces')}
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+            </motion.div>
           </div>
 
-          {/* Contest Ranking Card */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-6">
-            <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">
-              Contest Rankings
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* LeetCode Card */}
-              {user.leetcode_username && (
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                  <div className="flex items-center mb-3">
-                    <div className="w-4 h-4 bg-yellow-500 rounded-full mr-2"></div>
-                    <h4 className="font-medium text-gray-700 dark:text-gray-300">LeetCode</h4>
+          {/* Second Row: Contest Ratings */}
+          <div className="grid grid-cols-1 mt-6 md:grid-cols-3 gap-6">
+            {/* LeetCode Contest Rating */}
+            {leetCodeRating && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 }}
+                className="bg-gradient-to-br from-gray-900/80 to-gray-800/60 rounded-2xl border border-white/10 p-6 shadow-lg backdrop-blur-sm"
+              >
+                <div className="flex items-center justify-center mb-4">
+                  <SiLeetcode className="text-yellow-400 mr-2" size={20} />
+                  <h3 className="text-xl font-semibold text-white">LeetCode Rating</h3>
+                </div>
+                <div className="flex flex-col items-center justify-center">
+                  <div className="text-4xl font-bold text-yellow-400 mb-2">
+                    {leetCodeRating.recent || 'N/A'}
                   </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Current Rating:</span>
-                      <span className="font-medium">{user.leetcode_rating || 'N/A'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Max Rating:</span>
-                      <span className="font-medium">{user.leetcode_max_rating || 'N/A'}</span>
-                    </div>
+                  <div className="text-sm text-gray-400 mb-4">Current Rating</div>
+                  <div className="w-full bg-gray-700 rounded-full h-2.5 mb-2">
+                    <div 
+                      className="bg-yellow-400 h-2.5 rounded-full" 
+                      style={{ width: `${Math.min(100, (leetCodeRating.recent / (leetCodeRating.max || 2500)) * 100)}%` }}
+                    ></div>
+                  </div>
+                  <div className="flex justify-between w-full text-xs text-gray-400">
+                    <span>0</span>
+                    <span>Max: {leetCodeRating.max || 'N/A'}</span>
                   </div>
                 </div>
-              )}
+              </motion.div>
+            )}
 
-              {/* CodeChef Card - With Stars */}
-              {user.codechef_username && (
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                  <div className="flex items-center mb-3">
-                    <div className="w-4 h-4 bg-red-500 rounded-full mr-2"></div>
-                    <h4 className="font-medium text-gray-700 dark:text-gray-300">CodeChef</h4>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Current Rating:</span>
-                      <span className="font-medium">{user.codechef_rating || 'N/A'}</span>
+            {/* CodeChef Contest Rating */}
+            {codechefRating && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.2 }}
+                className="bg-gradient-to-br from-gray-900/80 to-gray-800/60 rounded-2xl border border-white/10 p-6 shadow-lg backdrop-blur-sm"
+              >
+                <div className="flex items-center justify-center mb-4">
+                  <SiCodechef className="text-red-500 mr-2" size={20} />
+                  <h3 className="text-xl font-semibold text-white">CodeChef Rating</h3>
+                </div>
+                <div className="flex flex-col items-center justify-center">
+                  <div className="flex items-center mb-2">
+                    <div className="text-4xl font-bold text-red-500 mr-2">
+                      {codechefRating.recent || 'N/A'}
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Max Rating:</span>
-                      <span className="font-medium">{user.codechef_max_rating || 'N/A'}</span>
-                    </div>
-                    {/* <div className="flex justify-between items-center">
-                      <span className="text-gray-600 dark:text-gray-400">Stars:</span>
-                      <div className="flex">
-                        {[...Array(getCodeChefStars(user.codechef_rating))].map((_, i) => (
-                          <svg key={i} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                          </svg>
-                        ))}
+                    {codechefRating.stars && (
+                      <div className="text-yellow-400 text-lg font-bold">
+                        {Array.from({ length: codechefRating.stars }).map((_, i) => '★')}
                       </div>
-                    </div> */}
+                    )}
+                  </div>
+                  <div className="text-sm text-gray-400 mb-4">Current Rating</div>
+                  <div className="w-full bg-gray-700 rounded-full h-2.5 mb-2">
+                    <div 
+                      className="bg-red-500 h-2.5 rounded-full" 
+                      style={{ width: `${Math.min(100, (codechefRating.recent / (codechefRating.max || 5000)) * 100)}%` }}
+                    ></div>
+                  </div>
+                  <div className="flex justify-between w-full text-xs text-gray-400">
+                    <span>0</span>
+                    <span>Max: {codechefRating.max || 'N/A'}</span>
                   </div>
                 </div>
-              )}
+              </motion.div>
+            )}
 
-              {/* CodeForces Card */}
-              {user.codeforces_username && (
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                  <div className="flex items-center mb-3">
-                    <div className="w-4 h-4 bg-blue-500 rounded-full mr-2"></div>
-                    <h4 className="font-medium text-gray-700 dark:text-gray-300">CodeForces</h4>
+            {/* CodeForces Contest Rating */}
+            {codeforcesRating && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.3 }}
+                className="bg-gradient-to-br from-gray-900/80 to-gray-800/60 rounded-2xl border border-white/10 p-6 shadow-lg backdrop-blur-sm"
+              >
+                <div className="flex items-center justify-center mb-4">
+                  <SiCodeforces className="text-blue-400 mr-2" size={20} />
+                  <h3 className="text-xl font-semibold text-white">CodeForces Rating</h3>
+                </div>
+                <div className="flex flex-col items-center justify-center">
+                  <div className="text-4xl font-bold text-blue-400 mb-2">
+                    {codeforcesRating.recent || 'N/A'}
                   </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Current Rating:</span>
-                      <span className="font-medium">{user.codeforces_rating || 'N/A'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Max Rating:</span>
-                      <span className="font-medium">{user.codeforces_max_rating || 'N/A'}</span>
-                    </div>
+                  <div className="text-sm text-gray-400 mb-4">Current Rating</div>
+                  <div className="w-full bg-gray-700 rounded-full h-2.5 mb-2">
+                    <div 
+                      className="bg-blue-400 h-2.5 rounded-full" 
+                      style={{ width: `${Math.min(100, (codeforcesRating.recent / (codeforcesRating.max || 3000)) * 100)}%` }}
+                    ></div>
+                  </div>
+                  <div className="flex justify-between w-full text-xs text-gray-400">
+                    <span>0</span>
+                    <span>Max: {codeforcesRating.max || 'N/A'}</span>
                   </div>
                 </div>
-              )}
-            </div>
+              </motion.div>
+            )}
           </div>
         </div>
       </div>
