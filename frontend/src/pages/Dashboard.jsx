@@ -11,6 +11,7 @@ import { FaLinkedin, FaGithub } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
+import CombinedHeatmap from "../components/CombinedHeatmap";
 
 const Dashboard = () => {
   const { profileData } = useUserProfile();
@@ -228,6 +229,7 @@ const Dashboard = () => {
 
         {/* Main Content */}
         <div className="flex-1 p-6 overflow-y-auto">
+          <CombinedHeatmap profileData={profileData} />
           {/* First Row - Two Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             {/* Total Count Card */}
