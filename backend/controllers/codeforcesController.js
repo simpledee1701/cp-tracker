@@ -1,4 +1,4 @@
-const { getUserInfo, getUserRating,getUserSubmissions } = require('../services/codeforcesService');
+const { getUserInfo, getUserRating, getUserSubmissions } = require('../services/codeforcesService');
 
 const getProfile = async (req, res) => {
     try {
@@ -20,6 +20,16 @@ const getProfile = async (req, res) => {
         return acc;
       }, {});
 
+      // Calculate total solved problems
+      const solvedProblems = new Set();
+      submissions.forEach(submission => {
+        if (submission.verdict === 'OK') {
+          const problemId = `${submission.problem.contestId}-${submission.problem.index}`;
+          solvedProblems.add(problemId);
+        }
+      });
+      const totalSolved = solvedProblems.size;
+
       res.json({
         handle: userInfo.handle,
         rating: userInfo.rating,
@@ -28,6 +38,7 @@ const getProfile = async (req, res) => {
         contribution: userInfo.contribution,
         friendOfCount: userInfo.friendOfCount,
         contests: ratingHistory.length,
+        totalSolved, // Add total solved problems count
         ratingHistory,
         submissionCalendar,
         recentContests: ratingHistory.slice(-5).reverse()
@@ -85,5 +96,4 @@ const getHeatmap = async (req, res) => {
   }
 };
 
-
-module.exports = { getProfile, getContestRating, getHeatmap};
+module.exports = { getProfile, getContestRating, getHeatmap };

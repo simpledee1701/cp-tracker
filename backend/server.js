@@ -10,6 +10,7 @@ const codeforcesRoutes = require('./routes/codeforcesRoutes');
 const userRoutes = require('./routes/userRoutes');
 const contestRoutes = require('./routes/contestRoutes');
 const heatmapRoutes = require('./routes/heatmapRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -34,6 +35,7 @@ app.use('/api/codeforces', codeforcesRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/contests', contestRoutes);
 app.use('/api/dash', heatmapRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
