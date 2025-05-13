@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import RatingGraph from './RatingGraph';
+import { UserAuth } from '../context/AuthContext';
 
 const LeetcodeStats = ({ username }) => {
   const [stats, setStats] = useState(null);
@@ -8,12 +9,14 @@ const LeetcodeStats = ({ username }) => {
   const [error, setError] = useState(null);
   const [expandedTopics, setExpandedTopics] = useState(false);
   const API_BASE = import.meta.env.VITE_BACKEND_URL;
+  const { session } = UserAuth();
 
   const fetchStats = async () => {
     try {
       setLoading(true);
       setError(null);
 
+      // Fetch LeetCode stats
       const response = await fetch(`${API_BASE}/api/leetcode/stats/${username}/`);
 
       if (!response.ok) {
@@ -27,7 +30,6 @@ const LeetcodeStats = ({ username }) => {
       }
 
       const responseData = await response.json();
-
       if (!responseData || !responseData.data || Object.keys(responseData.data).length === 0) {
         throw new Error('No data available for this user');
       }
@@ -77,11 +79,56 @@ const LeetcodeStats = ({ username }) => {
       };
 
       setStats(formattedStats);
+      if (session) {
+        await upsertLeetCodeData(formattedStats);
+      }
       setLoading(false);
     } catch (err) {
       console.error('Error fetching LeetCode stats:', err);
       setError(err.message || 'An unknown error occurred');
       setLoading(false);
+    }
+  };
+
+  const upsertLeetCodeData = async (leetcodeData) => {
+    try {
+      // Prepare contest ranking data
+      const contestRankingData = {
+        leetcode_recent_contest_rating: parseFloat(leetcodeData.rating) || 0,
+        leetcode_max_contest_rating: parseFloat(leetcodeData.rating) || 0,
+      };
+
+      // Prepare total questions data
+      const totalQuestionsData = {
+        leetcode_easy: leetcodeData.easySolved || 0,
+        leetcode_medium: leetcodeData.mediumSolved || 0,
+        leetcode_hard: leetcodeData.hardSolved || 0,
+        leetcode_total: leetcodeData.totalSolved || 0,
+      };
+
+      // Upsert both data sets
+      const upsertPromises = [
+        fetch(`${API_BASE}/api/dashboard/${session.user.id}/contest-ranking`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify(contestRankingData)
+        }),
+        fetch(`${API_BASE}/api/dashboard/${session.user.id}/total-questions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify(totalQuestionsData)
+        })
+      ];
+
+      await Promise.all(upsertPromises);
+    } catch (err) {
+      console.error('Error upserting LeetCode data:', err);
     }
   };
 

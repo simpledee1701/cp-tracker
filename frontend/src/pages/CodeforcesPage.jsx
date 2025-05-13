@@ -6,32 +6,64 @@ import RecentContests from '../components/codeforces/RecentContests';
 import CalendarHeatmap from '../components/codeforces/CalendarHeatmap';
 import Header from '../components/Header';
 import { useUserProfile } from '../context/UserProfileContext';
+import { UserAuth } from '../context/AuthContext';
 
 const CodeforcesPage = () => {
-  // State variables
   const { profileData, loading: profileLoading, error: profileError } = useUserProfile();
   const [username, setUsername] = useState(null);
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
   const [fetchError, setFetchError] = useState('');
-  const [initialLoad, setInitialLoad] = useState(true);
   const API_BASE = import.meta.env.VITE_BACKEND_URL;
+  const { session } = UserAuth();
 
   // Get username from profile data
   useEffect(() => {
-    if (profileLoading) {
-      // Still loading profile, wait
-      return;
-    }
-    
     if (profileData?.codeforces_username) {
       setUsername(profileData.codeforces_username);
-    } else {
-      // No username in profile, we can stop loading
-      setLoading(false);
-      setInitialLoad(false);
     }
-  }, [profileData, profileLoading]);
+  }, [profileData]);
+
+  const upsertCodeforcesData = async (data) => {
+    try {
+      if (!session) return;
+
+      // Prepare contest ranking data (only updating Codeforces fields)
+      const contestRankingData = {
+        codeforces_recent_contest_rating: data.rating || 0,
+        codeforces_max_contest_rating: data.maxRating || 0
+      };
+
+      // Prepare total questions data (only updating Codeforces field)
+      const totalQuestionsData = {
+        codeforces_total: data.totalSolved || 0,
+      };
+
+      // Upsert both data sets
+      const upsertPromises = [
+        fetch(`${API_BASE}/api/dashboard/${session.user.id}/contest-ranking`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify(contestRankingData)
+        }),
+        fetch(`${API_BASE}/api/dashboard/${session.user.id}/total-questions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify(totalQuestionsData)
+        })
+      ];
+
+      await Promise.all(upsertPromises);
+    } catch (err) {
+      console.error('Error upserting Codeforces data:', err);
+    }
+  };
 
   // Fetch Codeforces data when username changes
   useEffect(() => {
@@ -42,7 +74,6 @@ const CodeforcesPage = () => {
         setLoading(true);
         setFetchError('');
         
-        // Add cache busting to prevent stale data
         const response = await fetch(`${API_BASE}/api/codeforces/profile/${username}?t=${Date.now()}`);
         
         if (!response.ok) {
@@ -51,56 +82,41 @@ const CodeforcesPage = () => {
         
         const data = await response.json();
         
-        // Validate the response data
         if (!data || typeof data !== 'object') {
           throw new Error('Invalid data received from API');
         }
         
         setUserData(data);
+        
+        // Update database tables
+        if (session) {
+          await upsertCodeforcesData(data);
+        }
       } catch (err) {
         console.error('Fetch error:', err);
         setFetchError(err.message || 'Failed to load profile data');
         setUserData(null);
       } finally {
         setLoading(false);
-        setInitialLoad(false);
       }
     };
 
-    // Add delay to prevent rapid successive requests
     const timer = setTimeout(fetchData, 300);
     return () => clearTimeout(timer);
-  }, [username]);
+  }, [username, session]);
 
-  // Handle profile error
-  if (profileError && !initialLoad) {
+  if (profileLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
-        <Header />
-        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
-          <div className="bg-red-900/20 border border-red-700 rounded-xl p-6 mb-6 max-w-md w-full">
-            <h2 className="text-xl font-bold text-red-300 mb-2">Error Loading Profile</h2>
-            <p className="text-red-300">{profileError}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-4 px-4 py-2 bg-blue-600 rounded hover:bg-blue-700 transition"
-            >
-              Retry
-            </button>
-          </div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
-  // Show loading state during initial load
-  if (initialLoad || profileLoading) {
+  if (profileError) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
-        <Header />
-        <div className="container mx-auto px-4 py-8 flex items-center justify-center h-64">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center text-red-400">
+        <p>Error loading profile: {profileError}</p>
       </div>
     );
   }
@@ -168,8 +184,8 @@ const CodeforcesPage = () => {
                         <p className="text-2xl font-bold">{userData.contests || 0}</p>
                       </div>
                       <div className="bg-gray-700/50 p-4 rounded-lg">
-                        <h3 className="text-blue-300 text-sm">Friends</h3>
-                        <p className="text-2xl font-bold">{userData.friendOfCount || 0}</p>
+                        <h3 className="text-blue-300 text-sm">Problems Solved</h3>
+                        <p className="text-2xl font-bold">{userData.totalProblemsSolved || 0}</p>
                       </div>
                     </div>
                   </motion.div>

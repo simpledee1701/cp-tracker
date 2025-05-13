@@ -4,6 +4,7 @@ import LeetCodeStats from '../components/LeetCodeStats';
 import Header from '../components/Header';
 import { useUserProfile } from '../context/UserProfileContext';
 import { useNavigate } from 'react-router-dom';
+import { UserAuth } from '../context/AuthContext';
 
 const NoUserNameFound = ({ service = "LeetCode", redirectPath = "/profile" }) => {
   const navigate = useNavigate();
@@ -55,6 +56,7 @@ const NoUserNameFound = ({ service = "LeetCode", redirectPath = "/profile" }) =>
 const LeetcodePage = () => {
   const { profileData, error: profileError } = useUserProfile();
   const [username, setUsername] = useState(null);
+  const { session, loading: authLoading } = UserAuth();
 
   useEffect(() => {
     if (profileData?.leetcode_username) {
@@ -66,6 +68,14 @@ const LeetcodePage = () => {
     return (
       <div className="min-h-screen flex items-center justify-center text-red-400">
         <p>Error loading profile: {profileError}</p>
+      </div>
+    );
+  }
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
