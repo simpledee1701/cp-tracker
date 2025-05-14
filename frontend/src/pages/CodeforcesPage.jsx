@@ -65,9 +65,55 @@ const CodeforcesPage = () => {
     }
   };
 
+  const upsertCodeforcesDatas = async () => {
+    try {
+      if (!session) return;
+
+      // Prepare contest ranking data with null values
+      const contestRankingData = {
+        codeforces_recent_contest_rating: null,
+        codeforces_max_contest_rating: null,
+      };
+
+      // Prepare total questions data with null values
+      const totalQuestionsData = {
+        codeforces_total: null,
+      };
+
+      // Upsert both data sets
+      const upsertPromises = [
+        fetch(`${API_BASE}/api/dashboard/${session.user.id}/contest-ranking`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify(contestRankingData)
+        }),
+        fetch(`${API_BASE}/api/dashboard/${session.user.id}/total-questions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify(totalQuestionsData)
+        })
+      ];
+
+      await Promise.all(upsertPromises);
+    } catch (err) {
+      console.error('Error upserting Codeforces data:', err);
+    }
+  };
+
   // Fetch Codeforces data when username changes
   useEffect(() => {
-    if (!username) return;
+    if (!username) {
+      if (session) {
+        upsertCodeforcesDatas();
+      }
+      return;
+    }
 
     const fetchData = async () => {
       try {

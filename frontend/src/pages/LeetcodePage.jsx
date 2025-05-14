@@ -57,12 +57,62 @@ const LeetcodePage = () => {
   const { profileData, error: profileError } = useUserProfile();
   const [username, setUsername] = useState(null);
   const { session, loading: authLoading } = UserAuth();
+  const API_BASE = import.meta.env.VITE_BACKEND_URL;
+
+  // Function to upsert LeetCode data with null values
+  const upsertLeetCodeData = async () => {
+    try {
+      if (!session) return;
+
+      // Prepare contest ranking data with null values
+      const contestRankingData = {
+        leetcode_recent_contest_rating: null,
+        leetcode_max_contest_rating: null,
+      };
+
+      // Prepare total questions data with null values
+      const totalQuestionsData = {
+        leetcode_easy: null,
+        leetcode_medium: null,
+        leetcode_hard: null,
+        leetcode_total: null,
+      };
+
+      // Upsert both data sets
+      const upsertPromises = [
+        fetch(`${API_BASE}/api/dashboard/${session.user.id}/contest-ranking`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify(contestRankingData)
+        }),
+        fetch(`${API_BASE}/api/dashboard/${session.user.id}/total-questions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify(totalQuestionsData)
+        })
+      ];
+
+      await Promise.all(upsertPromises);
+    } catch (err) {
+      console.error('Error upserting LeetCode data:', err);
+    }
+  };
 
   useEffect(() => {
-    if (profileData?.leetcode_username) {
-      setUsername(profileData.leetcode_username);
+    if (profileData) {
+      if (profileData.leetcode_username) {
+        setUsername(profileData.leetcode_username);
+      } else if (session) {
+        upsertLeetCodeData();
+      }
     }
-  }, [profileData]);
+  }, [profileData, session]);
 
   if (profileError) {
     return (
