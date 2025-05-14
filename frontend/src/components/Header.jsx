@@ -33,32 +33,52 @@ const Headers = () => {
 
   const isActive = (path) => location.pathname === path;
 
-  // Platform data for consistent rendering
+  // Platform data with connection status
   const platforms = [
-    { id: 'leetcode', name: 'LeetCode', color: 'bg-green-400' },
-    { id: 'codeforces', name: 'Codeforces', color: 'bg-green-400' },
-    { id: 'codechef', name: 'CodeChef', color: 'bg-green-400' }
+    { 
+      id: 'leetcode', 
+      name: 'LeetCode', 
+      connected: !!profileData?.leetcode_username,
+      colorConnected: 'bg-green-400',
+      colorDisconnected: 'bg-red-400'
+    },
+    { 
+      id: 'codeforces', 
+      name: 'Codeforces', 
+      connected: !!profileData?.codeforces_username,
+      colorConnected: 'bg-green-400',
+      colorDisconnected: 'bg-red-400'
+    },
+    { 
+      id: 'codechef', 
+      name: 'CodeChef', 
+      connected: !!profileData?.codechef_username,
+      colorConnected: 'bg-green-400',
+      colorDisconnected: 'bg-red-400'
+    }
   ];
 
   return (
     <header className="bg-gradient-to-r from-slate-800 to-gray-900 backdrop-blur-md border-b border-slate-700 shadow-md relative z-50">
       <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-        {/* Logo and Title - Kept original but with modern spacing */}
-        <motion.div
-          className="flex items-center space-x-3"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 9l3 3-3 3m5 0h3m-11 4h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-          </svg>
-          <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-300">
-            CPier
-          </h1>
-        </motion.div>
+        {/* Logo and Title - Now clickable and redirects to dashboard */}
+        <Link to="/dashboard" className="flex items-center space-x-3">
+          <motion.div
+            className="flex items-center space-x-3"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 9l3 3-3 3m5 0h3m-11 4h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-300">
+              CPier
+            </h1>
+          </motion.div>
+        </Link>
 
-        {/* Navigation Menu - Modern hover effects with original colors */}
+        {/* Navigation Menu */}
         <nav className="hidden md:flex space-x-8 relative z-50">
           <Link
             to="/dashboard"
@@ -68,7 +88,7 @@ const Headers = () => {
             <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-400 transition-all duration-300 group-hover:w-full ${isActive('/dashboard') ? 'w-full' : ''}`}></span>
           </Link>
 
-          {/* Enhanced Coding Profiles Dropdown - Modern card design with original colors */}
+          {/* Coding Profiles Dropdown */}
           <div 
             className="relative" 
             ref={dropdownRef}
@@ -123,25 +143,26 @@ const Headers = () => {
                       Connected Platforms
                     </div>
                     
-                    {platforms.map(platform => {
-                      const isConnected = profileData?.profiles?.[platform.id];
-                      return (
-                        <Link
-                          key={platform.id}
-                          to={`/${platform.id}`}
-                          className={`flex items-center px-4 py-3 text-sm transition-all duration-200 ${
-                            isConnected 
-                              ? 'hover:bg-slate-700' 
-                              : 'opacity-80 hover:opacity-100 hover:bg-slate-700/50'
-                          }`}
-                          onClick={() => setIsDropdownOpen(false)}
-                        >
-                          <div className={`w-2 h-2 rounded-full ${isConnected ? platform.color : 'bg-slate-600'} mr-3`}></div>
-                          <span className="flex-1">{platform.name}</span>
-                          
-                        </Link>
-                      );
-                    })}
+                    {platforms.map(platform => (
+                      <Link
+                        key={platform.id}
+                        to={`/${platform.id}`}
+                        className={`flex items-center px-4 py-3 text-sm transition-all duration-200 ${
+                          platform.connected 
+                            ? 'hover:bg-slate-700' 
+                            : 'opacity-80 hover:opacity-100 hover:bg-slate-700/50'
+                        }`}
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <div className={`w-2 h-2 rounded-full ${
+                          platform.connected ? platform.colorConnected : platform.colorDisconnected
+                        } mr-3`}></div>
+                        <span className="flex-1">{platform.name}</span>
+                        <span className="text-xs text-slate-400">
+                          {platform.connected ? 'Connected' : 'Not Connected'}
+                        </span>
+                      </Link>
+                    ))}
                   </div>
                 </motion.div>
               )}
@@ -157,7 +178,7 @@ const Headers = () => {
           </Link>
         </nav>
 
-        {/* Right Icons - Modern floating design with original colors */}
+        {/* Right Icons */}
         <motion.div
           className="flex items-center space-x-5"
           initial={{ opacity: 0, x: 20 }}

@@ -304,7 +304,7 @@ const Dashboard = () => {
         {/* Main Content */}
         <div className="flex-1 p-6 overflow-y-auto">
 
-          <CombinedHeatmap profileData={profileData}/>
+          <CombinedHeatmap profileData={profileData} />
 
           {/* First Row: Stats Cards */}
           <div className="grid grid-cols-1 mt-6 md:grid-cols-3 gap-6">
@@ -344,15 +344,69 @@ const Dashboard = () => {
                 <div className="w-32 h-32 relative mb-4">
                   <svg viewBox="0 0 100 100" className="w-full h-full">
                     <circle cx="50" cy="50" r="40" fill="transparent" stroke="#374151" strokeWidth="8" />
-                    <circle cx="50" cy="50" r="40" fill="transparent" stroke="#f59e0b" strokeWidth="8" strokeLinecap="round"
-                      strokeDasharray={`${(getPlatformQuestions('leetcode') / getTotalQuestionsSolved()) * 251} 251`}
-                      transform="rotate(-90 50 50)" />
-                    <text x="50" y="50" textAnchor="middle" dominantBaseline="middle"
-                      className="text-2xl font-bold fill-white">
+
+                    {/* Easy */}
+                    {leetCodeBreakdown.easy > 0 && (
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="40"
+                        fill="transparent"
+                        stroke="#22c55e" // green
+                        strokeWidth="8"
+                        strokeLinecap="round"
+                        strokeDasharray={`${(leetCodeBreakdown.easy / getPlatformQuestions('leetcode')) * 251} 251`}
+                        transform="rotate(-90 50 50)"
+                      />
+                    )}
+
+                    {/* Medium */}
+                    {leetCodeBreakdown.medium > 0 && (
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="40"
+                        fill="transparent"
+                        stroke="#facc15" // yellow
+                        strokeWidth="8"
+                        strokeLinecap="round"
+                        strokeDasharray={`${(leetCodeBreakdown.medium / getPlatformQuestions('leetcode')) * 251} 251`}
+                        strokeDashoffset={`-${(leetCodeBreakdown.easy / getPlatformQuestions('leetcode')) * 251}`}
+                        transform="rotate(-90 50 50)"
+                      />
+                    )}
+
+                    {/* Hard */}
+                    {leetCodeBreakdown.hard > 0 && (
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="40"
+                        fill="transparent"
+                        stroke="#ef4444" // red
+                        strokeWidth="8"
+                        strokeLinecap="round"
+                        strokeDasharray={`${(leetCodeBreakdown.hard / getPlatformQuestions('leetcode')) * 251} 251`}
+                        strokeDashoffset={`-${(
+                          (leetCodeBreakdown.easy + leetCodeBreakdown.medium) /
+                          getPlatformQuestions('leetcode')
+                        ) * 251}`}
+                        transform="rotate(-90 50 50)"
+                      />
+                    )}
+
+                    <text
+                      x="50"
+                      y="50"
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      className="text-2xl font-bold fill-white"
+                    >
                       {getPlatformQuestions('leetcode')}
                     </text>
                   </svg>
                 </div>
+
               </div>
 
               {/* Difficulty Breakdown */}
@@ -394,19 +448,58 @@ const Dashboard = () => {
               <div className="flex flex-col items-center mb-6">
                 <div className="w-40 h-40 relative">
                   <svg viewBox="0 0 100 100" className="w-full h-full">
+                    {/* Background circle */}
                     <circle cx="50" cy="50" r="40" fill="transparent" stroke="#374151" strokeWidth="8" />
-                    <circle cx="50" cy="50" r="40" fill="transparent" stroke="#ef4444" strokeWidth="8" strokeLinecap="round"
-                      strokeDasharray={`${(getPlatformQuestions('codechef')) / (getPlatformQuestions('codechef') + getPlatformQuestions('codeforces')) * 251} 251`}
-                      transform="rotate(-90 50 50)" />
-                    <circle cx="50" cy="50" r="40" fill="transparent" stroke="#3b82f6" strokeWidth="8" strokeLinecap="round"
-                      strokeDasharray={`${(getPlatformQuestions('codeforces') / (getPlatformQuestions('codechef') + getPlatformQuestions('codeforces'))) * 251} 251`}
-                      strokeDashoffset={`-${(getPlatformQuestions('codechef') / (getPlatformQuestions('codechef') + getPlatformQuestions('codeforces'))) * 251}`}
-                      transform="rotate(-90 50 50)" />
-                    <text x="50" y="50" textAnchor="middle" dominantBaseline="middle"
-                      className="text-lg font-bold fill-white">
+
+                    {/* CodeChef circle */}
+                    {getPlatformQuestions('codechef') > 0 && (
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="40"
+                        fill="transparent"
+                        stroke="#ef4444"
+                        strokeWidth="8"
+                        strokeLinecap="round"
+                        strokeDasharray={`${(getPlatformQuestions('codechef') /
+                          (getPlatformQuestions('codechef') + getPlatformQuestions('codeforces'))) * 251
+                          } 251`}
+                        transform="rotate(-90 50 50)"
+                      />
+                    )}
+
+                    {/* Codeforces circle - only render if non-zero */}
+                    {getPlatformQuestions('codeforces') > 0 && (
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="40"
+                        fill="transparent"
+                        stroke="#3b82f6"
+                        strokeWidth="8"
+                        strokeLinecap="round"
+                        strokeDasharray={`${(getPlatformQuestions('codeforces') /
+                          (getPlatformQuestions('codechef') + getPlatformQuestions('codeforces'))) * 251
+                          } 251`}
+                        strokeDashoffset={`-${(getPlatformQuestions('codechef') /
+                          (getPlatformQuestions('codechef') + getPlatformQuestions('codeforces'))) * 251
+                          }`}
+                        transform="rotate(-90 50 50)"
+                      />
+                    )}
+
+                    {/* Total count in center */}
+                    <text
+                      x="50"
+                      y="50"
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      className="text-lg font-bold fill-white"
+                    >
                       {getPlatformQuestions('codechef') + getPlatformQuestions('codeforces')}
                     </text>
                   </svg>
+
                 </div>
               </div>
 
