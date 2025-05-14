@@ -120,7 +120,7 @@ export default function SignUp() {
   
     try {
       await signUpNewUser(formData.email, formData.password);
-      setSuccess('Account created successfully! Redirecting...');
+      setSuccess('Confirm your email-id.....');
       setTimeout(() => {
         navigate('/profileform');
       }, 1500);

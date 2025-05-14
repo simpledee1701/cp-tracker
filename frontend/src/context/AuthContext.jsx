@@ -27,7 +27,7 @@ export const AuthContextProvider = ({ children }) => {
             setSession(data.session);
             setLoading(false);
         };
-        
+
         initSession();
 
         // Set up auth state listener
@@ -35,7 +35,7 @@ export const AuthContextProvider = ({ children }) => {
             setSession(session);
             setLoading(false);
         });
-        
+
         // Clean up subscription
         return () => {
             if (authListener && authListener.subscription) {
@@ -50,7 +50,7 @@ export const AuthContextProvider = ({ children }) => {
             password,
         });
         return { data, error };
-    };      
+    };
 
     const signInWithGoogle = async () => {
         const { data, error } = await supabase.auth.signInWithOAuth({
@@ -71,14 +71,23 @@ export const AuthContextProvider = ({ children }) => {
         }
     };
 
+    // In your AuthContext.js
+    const resetPassword = async (email) => {
+        const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin + '/login', // You'll need to create this route
+        });
+        return { data, error };
+    };
+
     return (
-        <AuthContext.Provider value={{ 
-            session, 
-            loading, 
-            signUpNewUser, 
-            signInUser, 
+        <AuthContext.Provider value={{
+            session,
+            loading,
+            signUpNewUser,
+            signInUser,
             signInWithGoogle,
-            signOut 
+            signOut,
+            resetPassword
         }}>
             {children}
         </AuthContext.Provider>
