@@ -98,7 +98,7 @@ const EnhancedCalendarHeatmap = ({
         </div>
       </div>
 
-      <div className="relative overflow-x-auto pb-6">
+      <div className="relative overflow-x-auto ">
         <CalendarHeatmap
           startDate={startDate}
           endDate={endDate}

@@ -107,8 +107,8 @@ const CombinedHeatmap = ({ profileData }) => {
   }
 
   return (
-    <div className="text-white mt-1 rounded-lg p-6 bg-black/15 backdrop-blur-m">
-      <div className="flex justify-between items-center mb-4 ">
+    <div className="text-white mt-2 rounded-2xl p-6 bg-gradient-to-br from-gray-900/80 to-gray-800/60 border border-white/10 shadow-lg backdrop-blur-sm">
+      <div className="flex justify-between items-center mb-2 ">
         <div className="text-sm">
           <span className="text-xl font-semibold">{totalSubmissions}</span> submissions in the past year
         </div>

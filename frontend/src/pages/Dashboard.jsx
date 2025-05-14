@@ -78,7 +78,7 @@ const Dashboard = () => {
   const getContestRating = (platform) => {
     if (!dashboardData?.contest_ranking_info?.length) return null;
     const data = dashboardData.contest_ranking_info[0];
-    
+
     if (platform === 'leetcode') {
       return {
         recent: data.leetcode_recent_contest_rating,
@@ -116,13 +116,13 @@ const Dashboard = () => {
     };
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+  //       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+  //     </div>
+  //   );
+  // }
 
   const leetCodeBreakdown = getLeetCodeBreakdown();
   const leetCodeRating = getContestRating('leetcode');
@@ -303,8 +303,9 @@ const Dashboard = () => {
 
         {/* Main Content */}
         <div className="flex-1 p-6 overflow-y-auto">
-          <CombinedHeatmap profileData={profileData} />
-          
+
+          <CombinedHeatmap profileData={profileData}/>
+
           {/* First Row: Stats Cards */}
           <div className="grid grid-cols-1 mt-6 md:grid-cols-3 gap-6">
             {/* Card 1: Total Questions Solved */}
@@ -463,8 +464,8 @@ const Dashboard = () => {
                   </div>
                   <div className="text-sm text-gray-400 mb-4">Current Rating</div>
                   <div className="w-full bg-gray-700 rounded-full h-2.5 mb-2">
-                    <div 
-                      className="bg-yellow-400 h-2.5 rounded-full" 
+                    <div
+                      className="bg-yellow-400 h-2.5 rounded-full"
                       style={{ width: `${Math.min(100, (leetCodeRating.recent / (leetCodeRating.max || 2500)) * 100)}%` }}
                     ></div>
                   </div>
@@ -501,8 +502,8 @@ const Dashboard = () => {
                   </div>
                   <div className="text-sm text-gray-400 mb-4">Current Rating</div>
                   <div className="w-full bg-gray-700 rounded-full h-2.5 mb-2">
-                    <div 
-                      className="bg-red-500 h-2.5 rounded-full" 
+                    <div
+                      className="bg-red-500 h-2.5 rounded-full"
                       style={{ width: `${Math.min(100, (codechefRating.recent / (codechefRating.max || 5000)) * 100)}%` }}
                     ></div>
                   </div>
@@ -532,8 +533,8 @@ const Dashboard = () => {
                   </div>
                   <div className="text-sm text-gray-400 mb-4">Current Rating</div>
                   <div className="w-full bg-gray-700 rounded-full h-2.5 mb-2">
-                    <div 
-                      className="bg-blue-400 h-2.5 rounded-full" 
+                    <div
+                      className="bg-blue-400 h-2.5 rounded-full"
                       style={{ width: `${Math.min(100, (codeforcesRating.recent / (codeforcesRating.max || 3000)) * 100)}%` }}
                     ></div>
                   </div>
