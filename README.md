@@ -119,14 +119,14 @@ ALTER TABLE contest_ranking_info ENABLE ROW LEVEL SECURITY;
 3. Navigate to:
 4. Click **Create Credentials** → **OAuth 2.0 Client IDs**.
 5. Configure the consent screen:
-- **User Type**: External
-- Fill in necessary information (App name, support email, etc.)
-- Add your domain (if any) and developer contact info
-6. Under **Authorized redirect URIs**, add: https://<your-supabase-project-id>.supabase.co/auth/v1/callback
-Replace `<your-supabase-project-id>` with your actual Supabase project ref.
-7. Click **Create**, then copy:
-- **Client ID**
-- **Client Secret**
+    - **User Type**: External
+    - Fill in necessary information (App name, support email, etc.)
+    - Add your domain (if any) and developer contact info
+6. Under **Authorized redirect URIs**, add: https://<your-supabase-project-id>.supabase.co/auth/v1/callback.
+7. Replace `<your-supabase-project-id>` with your actual Supabase project ref.
+8. Click **Create**, then copy:
+    - **Client ID**
+    - **Client Secret**
 
 ### 🔧 Step 2: Enable Google Auth in Supabase
 
@@ -153,12 +153,41 @@ npm install
 cd backend
 npm install
 
-# Configure environment
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
-
 #Run the Project
 cd frontend
 npm run dev
 cd backend
 npm run dev
+```
+
+## 🌐 Live Demo
+Experience CPier at [https://cp-tracker-mauve.vercel.app/](https://cp-tracker-mauve.vercel.app/)
+
+## 👥 Contributors
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/simpledee1701">
+        <img src="https://avatars.githubusercontent.com/u/174812664?v=4" width="100px;" alt="John Doe" style="border-radius:50%;"/><br />
+        <sub><b>Deepak V</b></sub>
+      </a><br />
+      <a href="https://www.linkedin.com/in/deepak-v-4254301b2/" title="LinkedIn">
+        <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white" />
+      </a>
+      <br />
+      <sub></sub>
+    </td>
+    <td align="center">
+      <a href="https://github.com/suveerprasad">
+        <img src="https://avatars.githubusercontent.com/u/150579516?v=4" width="100px;" alt="Sarah Williams" style="border-radius:50%;"/><br />
+        <sub><b>Sai Suveer</b></sub>
+      </a><br />
+      <a href="https://www.linkedin.com/in/sai-suveer-96a65a1b8/" title="LinkedIn">
+        <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white" />
+      </a>
+      <br />
+      <sub></sub>
+    </td>
+  </tr>
+</table>
+
