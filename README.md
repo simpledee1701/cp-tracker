@@ -122,9 +122,12 @@ ALTER TABLE contest_ranking_info ENABLE ROW LEVEL SECURITY;
     - **User Type**: External
     - Fill in necessary information (App name, support email, etc.)
     - Add your domain (if any) and developer contact info
-6. Under **Authorized redirect URIs**, add: https://<your-supabase-project-id>.supabase.co/auth/v1/callback.
-7. Replace `<your-supabase-project-id>` with your actual Supabase project ref.
-8. Click **Create**, then copy:
+6. Under **Authorized redirect URIs**, add :
+      ```bash
+          [https://<your-supabase-project-id>/auth/v1/callback.]
+      ```
+8. Replace `<your-supabase-project-id>` with your actual Supabase project ref.
+9. Click **Create**, then copy:
     - **Client ID**
     - **Client Secret**
 
@@ -144,8 +147,8 @@ https://abcd1234.supabase.co/auth/v1/callback
 ## Installation
 ```bash
 # Clone repository
-git clone https://github.com/your-username/CPier.git
-cd CPier
+git clone https://github.com/suveerprasad/cp-tracker.git
+cd cp-tracker
 
 # Install dependencies
 cd frontend
