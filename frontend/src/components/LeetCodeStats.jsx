@@ -213,8 +213,25 @@ const LeetcodeStats = ({ username }) => {
   };
 
   const topicContainerVariants = {
-    closed: { height: "auto" },
-    open: { height: "auto" }
+    open: {
+      opacity: 1,
+      height: "auto",
+      transition: {
+        duration: 0.3,
+        ease: "easeInOut",
+        when: "beforeChildren",
+        staggerChildren: 0.1
+      }
+    },
+    closed: {
+      opacity: 0,
+      height: 0,
+      transition: {
+        duration: 0.3,
+        ease: "easeInOut",
+        when: "afterChildren"
+      }
+    }
   };
 
   const progressVariants = {
@@ -232,7 +249,7 @@ const LeetcodeStats = ({ username }) => {
   };
 
   const topTopics = getTopTopics();
-  
+
   const getTopicsByCategory = () => {
     return {
       fundamental: stats.topicStats.fundamental?.sort((a, b) => b.problemsSolved - a.problemsSolved) || [],
@@ -394,7 +411,7 @@ const LeetcodeStats = ({ username }) => {
         animate="show"
       >
         <motion.div variants={itemVariants} className="bg-gray-700 rounded-xl overflow-hidden shadow-lg border border-gray-600">
-          <div 
+          <div
             className="flex justify-between items-center p-4 bg-gray-800 cursor-pointer"
             onClick={() => setExpandedTopics(!expandedTopics)}
           >
@@ -536,7 +553,7 @@ const LeetcodeStats = ({ username }) => {
               </motion.div>
             )}
           </AnimatePresence>
-          
+
           {(!topTopics || topTopics.length === 0) && (
             <div className="p-6 bg-gray-800 text-center">
               <p className="text-gray-300">No topic data found</p>
@@ -570,7 +587,7 @@ const LeetcodeStats = ({ username }) => {
       </motion.div>
 
       {/* Contest History Section */}
-      <RatingGraph stats={stats}/>
+      <RatingGraph stats={stats} />
 
       <motion.div
         className="mb-8"
