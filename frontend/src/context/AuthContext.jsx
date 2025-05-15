@@ -74,7 +74,14 @@ export const AuthContextProvider = ({ children }) => {
     // In your AuthContext.js
     const resetPassword = async (email) => {
         const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: window.location.origin + '/login', // You'll need to create this route
+            redirectTo: window.location.origin + '/update-password', // You'll need to create this route
+        });
+        return { data, error };
+    };
+
+    const updatePassword = async (newPassword) => {
+        const { data, error } = await supabase.auth.updateUser({
+            password: newPassword
         });
         return { data, error };
     };
@@ -87,7 +94,8 @@ export const AuthContextProvider = ({ children }) => {
             signInUser,
             signInWithGoogle,
             signOut,
-            resetPassword
+            resetPassword,
+            updatePassword
         }}>
             {children}
         </AuthContext.Provider>

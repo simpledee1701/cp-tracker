@@ -11,14 +11,34 @@ import Dashboard from "./pages/Dashboard";
 import Contest from "./pages/Contest";
 import ProfileForm from "./pages/ProfileForm";
 import PP from "./pages/PP";
+import UpdatePassword from "./pages/UpdatePassword";
+import AuthRoute from './components/AuthRoute'
 
 export const router = createBrowserRouter([
     { path: "/", element: <Start /> },
-    { path: "/signup", element: <SignUp /> },
-    { path: "/login", element: <Login /> },
+    {
+        path: "/signup",
+        element: (
+            <AuthRoute>
+                <SignUp />
+            </AuthRoute>
+        )
+    },
+    {
+        path: "/login",
+        element: (
+            <AuthRoute>
+                <Login />
+            </AuthRoute>
+        )
+    },
+    {
+        path: "/update-password",
+        element: <UpdatePassword />
+    },
     { path: "/privacy", element: <PP /> },
-    { 
-        path: "/profile", 
+    {
+        path: "/profile",
         element: (
             <PrivateRoute>
                 <Profile />
@@ -27,48 +47,48 @@ export const router = createBrowserRouter([
     },
     {
         path: "/dashboard",
-            element:(
-                <PrivateRoute>
-                    <Dashboard />
-                </PrivateRoute>
-            )
-        
+        element: (
+            <PrivateRoute>
+                <Dashboard />
+            </PrivateRoute>
+        )
+
     },
 
-    { 
-        path: "/contest", 
+    {
+        path: "/contest",
         element: (
             <PrivateRoute>
                 <Contest />
             </PrivateRoute>
         )
     },
-    { 
-        path: "/leetcode", 
+    {
+        path: "/leetcode",
         element: (
             <PrivateRoute>
                 <LeetcodePage />
             </PrivateRoute>
         )
     },
-    { 
-        path: "/codechef", 
+    {
+        path: "/codechef",
         element: (
             <PrivateRoute>
                 <CodechefPage />
             </PrivateRoute>
         )
     },
-    { 
-        path: "/codeforces", 
+    {
+        path: "/codeforces",
         element: (
             <PrivateRoute>
                 <CodeforcesPage />
             </PrivateRoute>
         )
     },
-    { 
-        path: "/profileform", 
+    {
+        path: "/profileform",
         element: (
             <PrivateRoute>
                 <ProfileForm />
