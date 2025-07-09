@@ -51,7 +51,7 @@ export default function Profile() {
   });
   const { session, signOut } = UserAuth();
   const navigate = useNavigate();
-  const API_BASE = import.meta.env.VITE_BACKEND_URL;
+  const API_BASE = "https://cp-tracker-zyjk.onrender.com";
 
   useEffect(() => {
     const fetchProfile = async () => {
