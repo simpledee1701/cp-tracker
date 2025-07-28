@@ -5,6 +5,7 @@ import { FcGoogle } from 'react-icons/fc';
 import { UserAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
+
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
